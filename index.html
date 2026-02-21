@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Baccarat Studio - Live Edition</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: radial-gradient(circle at center, #1a1c2c 0%, #08080a 100%); min-height: 100vh; color: white; overflow: hidden; }
+    .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+    .drag-hover { background-color: rgba(255, 255, 255, 0.1) !important; border-color: rgba(255, 255, 255, 0.5) !important; transform: scale(1.01); }
+    .chip { 
+      width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-weight: 900; border: 4px dashed rgba(255,255,255,0.4); box-shadow: 0 4px 10px rgba(0,0,0,0.5); 
+      cursor: grab; transition: transform 0.2s;
+    }
+    .chip-50 { background: #4b4b4b; } .chip-250 { background: #be123c; } 
+    .chip-1250 { background: #15803d; } .chip-5000 { background: #18181b; border-color: #ffffff; } 
+    .chip-25k { background: #7e22ce; border-color: #d8b4fe; } .chip-125k { background: #a16207; border-color: #fef08a; } 
+    .negative { color: #ef4444 !important; }
+    #toast { transition: all 0.5s ease; transform: translate(-50%, -100%); opacity: 0; }
+    #toast.show { transform: translate(-50%, 20px); opacity: 1; }
+  </style>
+</head>
+<body class="flex flex-col items-center justify-between py-12 px-6">
+
+  <div id="toast" class="fixed top-0 left-1/2 glass px-12 py-4 rounded-full border-white/20 z-50 pointer-events-none">
+    <span id="toast-text" class="text-xl font-black italic tracking-widest uppercase"></span>
+  </div>
+
+  <div class="w-full max-w-5xl flex justify-between items-center glass p-6 rounded-[40px] border-white/10">
+    <div id="user-info" class="opacity-20 transition-opacity duration-500">
+      <span class="text-zinc-500 text-xs uppercase font-bold block">Viewing Player</span>
+      <h2 id="display-name" class="text-2xl font-black text-yellow-500 italic">Pumili ng Player...</h2>
+    </div>
+    <div class="flex gap-6 items-center">
+      <button onclick="downloadLogs()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[10px] font-bold py-2 px-4 rounded-full border border-white/10">DOWNLOAD LOGS</button>
+      <div class="text-right">
+        <span class="text-zinc-500 text-xs uppercase font-bold block">Individual Bankroll</span>
+        <h2 class="text-3xl font-mono font-bold text-white tracking-tighter">₱<span id="display-balance">0</span></h2>
+      </div>
+    </div>
+  </div>
+
+  <div class="w-full max-w-5xl">
+    <div class="flex h-80 w-full rounded-[150px] overflow-hidden border-2 border-white/10 bg-black/40 shadow-2xl relative">
+      <div ondragover="hOver(event)" ondragleave="hLeave(event)" ondrop="hDrop(event, 'player')" class="flex-1 flex flex-col items-center justify-center border-r border-white/5">
+        <span class="text-blue-500 font-black tracking-widest text-3xl italic">PLAYER</span>
+        <div id="bet-player" class="text-4xl font-mono mt-4 text-white font-bold">₱0</div>
+      </div>
+      <div ondragover="hOver(event)" ondragleave="hLeave(event)" ondrop="hDrop(event, 'tie')" class="w-1/4 flex flex-col items-center justify-center border-r border-white/5 bg-green-900/10">
+        <span class="text-green-500 font-bold text-xl tracking-widest">TIE</span>
+        <div id="bet-tie" class="text-3xl font-mono mt-2 text-white font-bold">₱0</div>
+      </div>
+      <div ondragover="hOver(event)" ondragleave="hLeave(event)" ondrop="hDrop(event, 'banker')" class="flex-1 flex flex-col items-center justify-center">
+        <span class="text-red-500 font-black tracking-widest text-3xl italic">BANKER</span>
+        <div id="bet-banker" class="text-4xl font-mono mt-4 text-white font-bold">₱0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="w-full max-w-5xl flex flex-col items-center gap-8">
+    <div id="chip-rack" class="flex items-center gap-6 p-4 glass rounded-full opacity-0 pointer-events-none transition-all duration-500 transform translate-y-4 border-white/10">
+      <button onclick="undo()" class="text-zinc-400 font-bold text-xs uppercase hover:text-white px-4">Undo</button>
+      <div class="flex gap-4">
+        <div draggable="true" ondragstart="hStart(50)" class="chip chip-50">50</div>
+        <div draggable="true" ondragstart="hStart(250)" class="chip chip-250">250</div>
+        <div draggable="true" ondragstart="hStart(1250)" class="chip chip-1250">1250</div>
+        <div draggable="true" ondragstart="hStart(5000)" class="chip chip-5000">5000</div>
+        <div draggable="true" ondragstart="hStart(25000)" class="chip chip-25k">25k</div>
+        <div draggable="true" ondragstart="hStart(125000)" class="chip chip-125k">125k</div>
+      </div>
+      <button onclick="double()" class="bg-zinc-800 text-white w-12 h-12 rounded-full font-bold border border-white/20 hover:bg-zinc-700 transition-colors">×2</button>
+    </div>
+
+    <div class="flex items-center gap-4 bg-zinc-900 p-2 pl-6 rounded-full border border-white/10 shadow-xl">
+      <select id="player-select" onchange="switchPlayer()" class="bg-transparent text-white font-bold px-4 py-2 outline-none cursor-pointer">
+        <option value="" class="bg-zinc-900">Select Account...</option>
+        <option value="Gabbi" class="bg-zinc-900">Gabbi</option>
+        <option value="Yowe" class="bg-zinc-900">Yowe</option>
+        <option value="Lash" class="bg-zinc-900">Lash</option>
+        <option value="Jabo" class="bg-zinc-900">Jabo</option>
+        <option value="Kuku" class="bg-zinc-900">Kuku</option>
+        <option value="DJ" class="bg-zinc-900">DJ</option>
+        <option value="GK" class="bg-zinc-900">GK</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="fixed right-8 top-1/2 -translate-y-1/2 flex flex-col gap-3">
+    <button onclick="resolveAll('player')" class="bg-blue-600 hover:bg-blue-500 p-5 rounded-2xl font-black text-xs shadow-lg transition-transform active:scale-95">PLAYER WINS</button>
+    <button onclick="resolveAll('banker')" class="bg-red-600 hover:bg-red-500 p-5 rounded-2xl font-black text-xs shadow-lg transition-transform active:scale-95">BANKER WINS</button>
+    <button onclick="resolveAll('tie')" class="bg-green-600 hover:bg-green-500 p-5 rounded-2xl font-black text-xs shadow-lg transition-transform active:scale-95">TIE WINS</button>
+  </div>
+
+  <script>
+    // Database (Local for now, sync ready for Firebase)
+    let players = JSON.parse(localStorage.getItem('baccarat_db')) || {
+      "Gabbi": { b: 0, bets: { player: 0, tie: 0, banker: 0 } },
+      "Yowe":  { b: 0, bets: { player: 0, tie: 0, banker: 0 } },
+      "Lash":  { b: 0, bets: { player: 0, tie: 0, banker: 0 } },
+      "Jabo":  { b: 0, bets: { player: 0, tie: 0, banker: 0 } },
+      "Kuku":  { b: 0, bets: { player: 0, tie: 0, banker: 0 } },
+      "DJ":    { b: 0, bets: { player: 0, tie: 0, banker: 0 } },
+      "GK":    { b: 0, bets: { player: 0, tie: 0, banker: 0 } }
+    };
+
+    let cur = null; let dVal = 0;
+
+    function save() { localStorage.setItem('baccarat_db', JSON.stringify(players)); }
+
+    function switchPlayer() {
+      cur = document.getElementById('player-select').value;
+      if (!cur) return;
+      document.getElementById('chip-rack').style.opacity = "1";
+      document.getElementById('chip-rack').style.pointerEvents = "auto";
+      document.getElementById('chip-rack').style.transform = "translateY(0)";
+      document.getElementById('user-info').style.opacity = "1";
+      document.getElementById('display-name').innerText = cur;
+      update();
+    }
+
+    function hStart(v) { dVal = v; event.dataTransfer.setData("text", v); }
+    function hOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-hover'); }
+    function hLeave(e) { e.currentTarget.classList.remove('drag-hover'); }
+
+    function hDrop(e, z) {
+      e.preventDefault(); e.currentTarget.classList.remove('drag-hover');
+      if (!cur) return;
+      players[cur].b -= dVal;
+      players[cur].bets[z] += dVal;
+      update(); save();
+    }
+
+    function undo() {
+      if (!cur) return;
+      players[cur].b += (players[cur].bets.player + players[cur].bets.tie + players[cur].bets.banker);
+      players[cur].bets = { player: 0, tie: 0, banker: 0 };
+      update(); save();
+    }
+
+    function double() {
+      if (!cur) return;
+      players[cur].b -= (players[cur].bets.player + players[cur].bets.tie + players[cur].bets.banker);
+      players[cur].bets.player *= 2; players[cur].bets.tie *= 2; players[cur].bets.banker *= 2;
+      update(); save();
+    }
+
+    function resolveAll(winner) {
+      Object.keys(players).forEach(name => {
+        let p = players[name];
+        let win = 0;
+        if (winner === 'player') win = p.bets.player * 2;
+        if (winner === 'banker') win = p.bets.banker * 1.95;
+        if (winner === 'tie')    win = p.bets.tie * 9;
+        p.b += Math.floor(win);
+        p.bets = { player: 0, tie: 0, banker: 0 };
+      });
+      showToast(winner); update(); save();
+    }
+
+    function showToast(winner) {
+      const t = document.getElementById('toast');
+      const txt = document.getElementById('toast-text');
+      txt.innerText = winner + " wins";
+      txt.style.color = winner === 'player' ? '#3b82f6' : winner === 'banker' ? '#ef4444' : '#22c55e';
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    function downloadLogs() {
+      let now = new Date().toLocaleString();
+      let content = `BACCARAT STUDIO LOGS - ${now}\n`;
+      content += `==========================================\n\n`;
+      
+      let toPay = "--- TO BE PAID (Positive Balances) ---\n";
+      let owesYou = "--- OWES YOU (Negative Balances) ---\n";
+
+      Object.keys(players).forEach(name => {
+        let bal = players[name].b;
+        if (bal > 0) toPay += `${name}: ₱${bal}\n`;
+        else if (bal < 0) owesYou += `${name}: ₱${Math.abs(bal)}\n`;
+        else toPay += `${name}: ₱0 (Balanced)\n`;
+      });
+
+      let finalFile = content + owesYou + "\n" + toPay;
+      let blob = new Blob([finalFile], { type: "text/plain" });
+      let a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `Baccarat_Logs_${new Date().toLocaleDateString()}.txt`;
+      a.click();
+    }
+
+    function update() {
+      if (!cur) return;
+      const p = players[cur];
+      const balEl = document.getElementById('display-balance');
+      balEl.innerText = p.b;
+      balEl.parentElement.classList.toggle('negative', p.b < 0);
+      document.getElementById('bet-player').innerText = "₱" + p.bets.player;
+      document.getElementById('bet-tie').innerText = "₱" + p.bets.tie;
+      document.getElementById('bet-banker').innerText = "₱" + p.bets.banker;
+    }
+  </script>
+</body>
+</html>
