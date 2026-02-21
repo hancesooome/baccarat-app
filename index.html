@@ -2,12 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Baccarat Studio - Live Edition</title>
+  <title>Baccarat Studio - Tie Refund Edition</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { background: radial-gradient(circle at center, #1a1c2c 0%, #08080a 100%); min-height: 100vh; color: white; overflow: hidden; }
     .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
     .drag-hover { background-color: rgba(255, 255, 255, 0.1) !important; border-color: rgba(255, 255, 255, 0.5) !important; transform: scale(1.01); }
+    
     .chip { 
       width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
       font-weight: 900; border: 4px dashed rgba(255,255,255,0.4); box-shadow: 0 4px 10px rgba(0,0,0,0.5); 
@@ -16,6 +17,7 @@
     .chip-50 { background: #4b4b4b; } .chip-250 { background: #be123c; } 
     .chip-1250 { background: #15803d; } .chip-5000 { background: #18181b; border-color: #ffffff; } 
     .chip-25k { background: #7e22ce; border-color: #d8b4fe; } .chip-125k { background: #a16207; border-color: #fef08a; } 
+    
     .negative { color: #ef4444 !important; }
     #toast { transition: all 0.5s ease; transform: translate(-50%, -100%); opacity: 0; }
     #toast.show { transform: translate(-50%, 20px); opacity: 1; }
@@ -30,12 +32,12 @@
   <div class="w-full max-w-5xl flex justify-between items-center glass p-6 rounded-[40px] border-white/10">
     <div id="user-info" class="opacity-20 transition-opacity duration-500">
       <span class="text-zinc-500 text-xs uppercase font-bold block">Viewing Player</span>
-      <h2 id="display-name" class="text-2xl font-black text-yellow-500 italic">Pumili ng Player...</h2>
+      <h2 id="display-name" class="text-2xl font-black text-yellow-500 italic">Select Player...</h2>
     </div>
-    <div class="flex gap-6 items-center">
-      <button onclick="downloadLogs()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[10px] font-bold py-2 px-4 rounded-full border border-white/10">DOWNLOAD LOGS</button>
+    <div class="flex gap-4 items-center">
+      <button onclick="downloadLogs()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[10px] font-bold py-2 px-4 rounded-full border border-white/10 transition-colors">DOWNLOAD LOGS</button>
       <div class="text-right">
-        <span class="text-zinc-500 text-xs uppercase font-bold block">Individual Bankroll</span>
+        <span class="text-zinc-500 text-[10px] uppercase font-bold block tracking-widest">Bankroll</span>
         <h2 class="text-3xl font-mono font-bold text-white tracking-tighter">₱<span id="display-balance">0</span></h2>
       </div>
     </div>
@@ -43,12 +45,12 @@
 
   <div class="w-full max-w-5xl">
     <div class="flex h-80 w-full rounded-[150px] overflow-hidden border-2 border-white/10 bg-black/40 shadow-2xl relative">
-      <div ondragover="hOver(event)" ondragleave="hLeave(event)" ondrop="hDrop(event, 'player')" class="flex-1 flex flex-col items-center justify-center border-r border-white/5">
+      <div ondragover="hOver(event)" ondragleave="hLeave(event)" ondrop="hDrop(event, 'player')" class="flex-1 flex flex-col items-center justify-center border-r border-white/5 transition-all">
         <span class="text-blue-500 font-black tracking-widest text-3xl italic">PLAYER</span>
         <div id="bet-player" class="text-4xl font-mono mt-4 text-white font-bold">₱0</div>
       </div>
       <div ondragover="hOver(event)" ondragleave="hLeave(event)" ondrop="hDrop(event, 'tie')" class="w-1/4 flex flex-col items-center justify-center border-r border-white/5 bg-green-900/10">
-        <span class="text-green-500 font-bold text-xl tracking-widest">TIE</span>
+        <span class="text-green-500 font-bold text-xl tracking-widest">TIE (8:1)</span>
         <div id="bet-tie" class="text-3xl font-mono mt-2 text-white font-bold">₱0</div>
       </div>
       <div ondragover="hOver(event)" ondragleave="hLeave(event)" ondrop="hDrop(event, 'banker')" class="flex-1 flex flex-col items-center justify-center">
@@ -93,7 +95,7 @@
   </div>
 
   <script>
-    // Database (Local for now, sync ready for Firebase)
+    // Load from LocalStorage or initialize
     let players = JSON.parse(localStorage.getItem('baccarat_db')) || {
       "Gabbi": { b: 0, bets: { player: 0, tie: 0, banker: 0 } },
       "Yowe":  { b: 0, bets: { player: 0, tie: 0, banker: 0 } },
@@ -104,7 +106,8 @@
       "GK":    { b: 0, bets: { player: 0, tie: 0, banker: 0 } }
     };
 
-    let cur = null; let dVal = 0;
+    let cur = null; 
+    let dVal = 0;
 
     function save() { localStorage.setItem('baccarat_db', JSON.stringify(players)); }
 
@@ -133,26 +136,37 @@
 
     function undo() {
       if (!cur) return;
-      players[cur].b += (players[cur].bets.player + players[cur].bets.tie + players[cur].bets.banker);
-      players[cur].bets = { player: 0, tie: 0, banker: 0 };
+      let p = players[cur];
+      p.b += (p.bets.player + p.bets.tie + p.bets.banker);
+      p.bets = { player: 0, tie: 0, banker: 0 };
       update(); save();
     }
 
     function double() {
       if (!cur) return;
-      players[cur].b -= (players[cur].bets.player + players[cur].bets.tie + players[cur].bets.banker);
-      players[cur].bets.player *= 2; players[cur].bets.tie *= 2; players[cur].bets.banker *= 2;
+      let p = players[cur];
+      p.b -= (p.bets.player + p.bets.tie + p.bets.banker);
+      p.bets.player *= 2; p.bets.tie *= 2; p.bets.banker *= 2;
       update(); save();
     }
 
     function resolveAll(winner) {
       Object.keys(players).forEach(name => {
         let p = players[name];
-        let win = 0;
-        if (winner === 'player') win = p.bets.player * 2;
-        if (winner === 'banker') win = p.bets.banker * 1.95;
-        if (winner === 'tie')    win = p.bets.tie * 9;
-        p.b += Math.floor(win);
+        let totalWin = 0;
+
+        if (winner === 'player') {
+          totalWin = p.bets.player * 2;
+        } else if (winner === 'banker') {
+          totalWin = p.bets.banker * 1.95;
+        } else if (winner === 'tie') {
+          // Tie Pays 8:1 (plus the original bet returned)
+          totalWin = p.bets.tie * 9;
+          // REFUND PLAYER AND BANKER BETS
+          p.b += (p.bets.player + p.bets.banker);
+        }
+
+        p.b += Math.floor(totalWin);
         p.bets = { player: 0, tie: 0, banker: 0 };
       });
       showToast(winner); update(); save();
@@ -169,24 +183,23 @@
 
     function downloadLogs() {
       let now = new Date().toLocaleString();
-      let content = `BACCARAT STUDIO LOGS - ${now}\n`;
+      let content = `BACCARAT STUDIO SUMMARY - ${now}\n`;
       content += `==========================================\n\n`;
-      
-      let toPay = "--- TO BE PAID (Positive Balances) ---\n";
-      let owesYou = "--- OWES YOU (Negative Balances) ---\n";
+      let toPay = "--- PAYOUTS (Positive Balances) ---\n";
+      let owesYou = "--- DEBTS (Negative Balances) ---\n";
 
       Object.keys(players).forEach(name => {
         let bal = players[name].b;
         if (bal > 0) toPay += `${name}: ₱${bal}\n`;
         else if (bal < 0) owesYou += `${name}: ₱${Math.abs(bal)}\n`;
-        else toPay += `${name}: ₱0 (Balanced)\n`;
+        else toPay += `${name}: ₱0\n`;
       });
 
       let finalFile = content + owesYou + "\n" + toPay;
       let blob = new Blob([finalFile], { type: "text/plain" });
       let a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = `Baccarat_Logs_${new Date().toLocaleDateString()}.txt`;
+      a.download = `Baccarat_Logs.txt`;
       a.click();
     }
 
@@ -194,11 +207,11 @@
       if (!cur) return;
       const p = players[cur];
       const balEl = document.getElementById('display-balance');
-      balEl.innerText = p.b;
+      balEl.innerText = p.b.toLocaleString(); // Add commas for better reading
       balEl.parentElement.classList.toggle('negative', p.b < 0);
-      document.getElementById('bet-player').innerText = "₱" + p.bets.player;
-      document.getElementById('bet-tie').innerText = "₱" + p.bets.tie;
-      document.getElementById('bet-banker').innerText = "₱" + p.bets.banker;
+      document.getElementById('bet-player').innerText = "₱" + p.bets.player.toLocaleString();
+      document.getElementById('bet-tie').innerText = "₱" + p.bets.tie.toLocaleString();
+      document.getElementById('bet-banker').innerText = "₱" + p.bets.banker.toLocaleString();
     }
   </script>
 </body>
