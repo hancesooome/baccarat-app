@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Armel Baccarat</title>
+  <title>Armel Baccarat - Organized Stacks</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { background: radial-gradient(circle at center, #1a1c2c 0%, #08080a 100%); min-height: 100vh; color: white; overflow: hidden; font-family: sans-serif; }
@@ -20,16 +20,24 @@
     #cards-player { flex-direction: row-reverse; } 
     #cards-banker { flex-direction: row; }
 
-    /* Chips */
-    .table-chip { position: absolute; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 900; border: 2px dashed rgba(255,255,255,0.5); box-shadow: 0 4px 8px rgba(0,0,0,0.4); pointer-events: none; z-index: 50; }
-    .chip { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; border: 3px dashed rgba(255,255,255,0.4); cursor: pointer; transition: 0.2s; font-size: 10px; }
+    /* Chips UI */
+    .table-chip { 
+        position: absolute; width: 38px; height: 38px; border-radius: 50%; 
+        display: flex; align-items: center; justify-content: center; 
+        font-size: 9px; font-weight: 900; border: 2px dashed rgba(255,255,255,0.4); 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        left: 50%; transform: translateX(-50%); 
+        pointer-events: none; /* Vital: Allows clicks to pass through to the zone */
+    }
+    .chip { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; border: 3px dashed rgba(255,255,255,0.4); cursor: pointer; transition: 0.2s; font-size: 10px; user-select: none; }
     .chip-active { transform: scale(1.2) translateY(-10px); border: 3px solid #fbbf24 !important; }
     
     .chip-50 { background: #4b4b4b; } .chip-250 { background: #be123c; } .chip-1250 { background: #15803d; } 
     .chip-5000 { background: #18181b; } .chip-25k { background: #7e22ce; } .chip-125k { background: #a16207; } 
 
-    .bet-zone { position: relative; display: flex; flex-direction: column; align-items: center; padding-top: 20px; transition: 0.3s; }
-    .chip-area { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+    .bet-zone { position: relative; display: flex; flex-direction: column; align-items: center; padding-top: 20px; transition: 0.3s; cursor: pointer; }
+    .zone-hover { background: rgba(255, 255, 255, 0.1) !important; }
+    .chip-area { position: absolute; inset: 0; pointer-events: none; }
 
     #toast { transition: 0.5s ease; transform: translate(-50%, -100%); opacity: 0; z-index: 1000; }
     #toast.show { transform: translate(-50%, 20px); opacity: 1; }
@@ -75,19 +83,19 @@
     </div>
 
     <div id="table-zones" class="flex h-64 w-full rounded-[150px] overflow-hidden border-2 border-white/10 bg-black/40 shadow-2xl relative">
-      <div onclick="handleTableClick('player', event)" class="bet-zone flex-1 border-r border-white/5 cursor-pointer hover:bg-white/5">
-        <span class="text-blue-500 font-black text-lg italic">PLAYER</span>
-        <div id="bet-player" class="text-xl font-mono font-bold">₱0</div>
+      <div onclick="handleTableClick('player')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop('player', event)" class="bet-zone flex-1 border-r border-white/5 hover:bg-white/5">
+        <span class="text-blue-500 font-black text-lg italic pointer-events-none">PLAYER</span>
+        <div id="bet-player" class="text-xl font-mono font-bold pointer-events-none">₱0</div>
         <div id="chips-player" class="chip-area"></div>
       </div>
-      <div onclick="handleTableClick('tie', event)" class="bet-zone w-1/4 border-r border-white/5 bg-green-900/5 cursor-pointer hover:bg-green-900/10">
-        <span class="text-green-500 font-bold text-sm">TIE</span>
-        <div id="bet-tie" class="text-lg font-mono font-bold">₱0</div>
+      <div onclick="handleTableClick('tie')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop('tie', event)" class="bet-zone w-1/4 border-r border-white/5 bg-green-900/5 hover:bg-green-900/10">
+        <span class="text-green-500 font-bold text-sm pointer-events-none">TIE</span>
+        <div id="bet-tie" class="text-lg font-mono font-bold pointer-events-none">₱0</div>
         <div id="chips-tie" class="chip-area"></div>
       </div>
-      <div onclick="handleTableClick('banker', event)" class="bet-zone flex-1 cursor-pointer hover:bg-white/5">
-        <span class="text-red-500 font-black text-lg italic">BANKER</span>
-        <div id="bet-banker" class="text-xl font-mono font-bold">₱0</div>
+      <div onclick="handleTableClick('banker')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop('banker', event)" class="bet-zone flex-1 hover:bg-white/5">
+        <span class="text-red-500 font-black text-lg italic pointer-events-none">BANKER</span>
+        <div id="bet-banker" class="text-xl font-mono font-bold pointer-events-none">₱0</div>
         <div id="chips-banker" class="chip-area"></div>
       </div>
     </div>
@@ -97,12 +105,12 @@
     <div id="chip-rack" class="flex items-center gap-3 p-3 glass rounded-full opacity-0 transition-all">
       <button onclick="undoBets()" class="text-zinc-500 font-bold text-[10px] uppercase px-2 hover:text-white">Undo</button>
       <div class="flex gap-2">
-        <div onclick="selectChip(50, this)" class="chip chip-50">50</div>
-        <div onclick="selectChip(250, this)" class="chip chip-250">250</div>
-        <div onclick="selectChip(1250, this)" class="chip chip-1250">1250</div>
-        <div onclick="selectChip(5000, this)" class="chip chip-5000">5k</div>
-        <div onclick="selectChip(25000, this)" class="chip chip-25k">25k</div>
-        <div onclick="selectChip(125000, this)" class="chip chip-125k">125k</div>
+        <div draggable="true" ondragstart="handleDragStart(50, this)" onclick="selectChip(50, this)" class="chip chip-50">50</div>
+        <div draggable="true" ondragstart="handleDragStart(250, this)" onclick="selectChip(250, this)" class="chip chip-250">250</div>
+        <div draggable="true" ondragstart="handleDragStart(1250, this)" onclick="selectChip(1250, this)" class="chip chip-1250">1250</div>
+        <div draggable="true" ondragstart="handleDragStart(5000, this)" onclick="selectChip(5000, this)" class="chip chip-5000">5k</div>
+        <div draggable="true" ondragstart="handleDragStart(25000, this)" onclick="selectChip(25000, this)" class="chip chip-25k">25k</div>
+        <div draggable="true" ondragstart="handleDragStart(125000, this)" onclick="selectChip(125000, this)" class="chip chip-125k">125k</div>
       </div>
       <button onclick="doubleBets()" class="bg-zinc-800 text-white w-8 h-8 rounded-full font-bold border border-white/20">×2</button>
     </div>
@@ -125,6 +133,7 @@
       "GK":    { b: 100000, bets: { player: 0, tie: 0, banker: 0 }, h: [] }
     };
 
+    let chipStackCount = { player: 0, tie: 0, banker: 0 };
     let cur = null; let activeChipValue = null; let timerVal = 15; let isBettingOpen = false;
     const suits = ['♠','♥','♣','♦'];
     const values = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
@@ -133,9 +142,61 @@
     function getVal(idx) { return idx === 0 ? 1 : (idx >= 9 ? 0 : idx + 1); }
     function getRandomCard() { return Math.floor(Math.random() * 13); }
 
+    // --- INTERACTION LOGIC (Fixed) ---
+    function handleDragStart(val, el) {
+        if (!isBettingOpen || !cur) return;
+        selectChip(val, el);
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault();
+        if (isBettingOpen) e.currentTarget.classList.add('zone-hover');
+    }
+
+    function handleDragLeave(e) {
+        e.currentTarget.classList.remove('zone-hover');
+    }
+
+    function handleDrop(zone, e) {
+        e.preventDefault();
+        e.currentTarget.classList.remove('zone-hover');
+        if (isBettingOpen) processBet(zone);
+    }
+
+    function handleTableClick(zone) {
+        if (isBettingOpen) processBet(zone);
+    }
+
+    function processBet(zone) {
+        if (!cur || activeChipValue === null) return;
+        if (players[cur].b < activeChipValue) return;
+        players[cur].b -= activeChipValue;
+        players[cur].bets[zone] += activeChipValue;
+        createTableChip(activeChipValue, zone);
+        update(); save();
+    }
+
+    function createTableChip(amount, zone) {
+      const container = document.getElementById(`chips-${zone}`);
+      const chip = document.createElement('div');
+      const valText = amount >= 1000 ? (amount / 1000) + 'k' : amount;
+      
+      // Organized Stacking Logic
+      const stackHeight = chipStackCount[zone] * 4; // Moves 4px up per chip
+      chipStackCount[zone]++;
+
+      chip.className = `table-chip chip-${amount >= 125000 ? '125k' : amount >= 25000 ? '25k' : amount >= 5000 ? '5000' : amount}`;
+      chip.innerText = valText;
+      chip.style.bottom = (40 + stackHeight) + "px"; // Starts from floor, builds up
+      chip.style.zIndex = chipStackCount[zone];
+      container.appendChild(chip);
+    }
+
+    // --- GAME ENGINE ---
     function startBettingRound() {
         isBettingOpen = true;
         timerVal = 15;
+        chipStackCount = { player: 0, tie: 0, banker: 0 };
         document.getElementById('table-zones').classList.remove('betting-closed');
         document.getElementById('status-label').innerText = "Place Your Bets";
         document.getElementById('status-label').classList.add('animate-pulse');
@@ -156,14 +217,6 @@
         setTimeout(dealGame, 1000);
     }
 
-    function switchPlayer() {
-      cur = document.getElementById('player-select').value;
-      if (!cur) return;
-      document.getElementById('chip-rack').classList.remove('opacity-0');
-      document.getElementById('display-name').innerText = cur;
-      update();
-    }
-
     async function dealGame() {
         document.getElementById('cards-player').innerHTML = '';
         document.getElementById('cards-banker').innerHTML = '';
@@ -180,12 +233,10 @@
         document.getElementById('score-player').innerText = pTotal;
         document.getElementById('score-banker').innerText = bTotal;
 
-        let isNatural = (pTotal >= 8 || bTotal >= 8);
-        if (!isNatural) {
+        if (pTotal < 8 && bTotal < 8) {
             let p3Val = -1;
             if (pTotal <= 5) {
-                let p3 = getRandomCard();
-                pHand.push(p3); p3Val = getVal(p3);
+                let p3 = getRandomCard(); pHand.push(p3); p3Val = getVal(p3);
                 await renderCard('player', p3, true);
                 pTotal = (pTotal + p3Val) % 10;
                 document.getElementById('score-player').innerText = pTotal;
@@ -200,8 +251,7 @@
                 else if (bTotal === 6 && [6,7].includes(p3Val)) bankerHits = true;
             }
             if (bankerHits) {
-                let b3 = getRandomCard();
-                bHand.push(b3);
+                let b3 = getRandomCard(); bHand.push(b3);
                 await renderCard('banker', b3, true);
                 bTotal = (bTotal + getVal(b3)) % 10;
                 document.getElementById('score-banker').innerText = bTotal;
@@ -210,7 +260,7 @@
 
         let winner = pTotal > bTotal ? 'player' : bTotal > pTotal ? 'banker' : 'tie';
         setTimeout(() => {
-            resolveRound(winner, pTotal, bTotal, isNatural);
+            resolveRound(winner, pTotal, bTotal, (pTotal>=8||bTotal>=8));
             setTimeout(startBettingRound, 5000);
         }, 800);
     }
@@ -248,32 +298,6 @@
       showToast(winner, pTotal, bTotal, natural); update(); save();
     }
 
-    function handleTableClick(zone, e) {
-      if (!cur || activeChipValue === null || !isBettingOpen) return;
-      if (players[cur].b < activeChipValue) return;
-      players[cur].b -= activeChipValue;
-      players[cur].bets[zone] += activeChipValue;
-      
-      // Calculate placement relative to the specific zone clicked
-      const rect = e.currentTarget.getBoundingClientRect();
-      const x = e.clientX - rect.left - 17; // Adjust for chip width
-      const y = e.clientY - rect.top - 17; // Adjust for chip height
-      
-      createTableChip(activeChipValue, zone, x, y);
-      update(); save();
-    }
-
-    function createTableChip(amount, zone, x, y) {
-      const container = document.getElementById(`chips-${zone}`);
-      const chip = document.createElement('div');
-      const valText = amount >= 1000 ? (amount / 1000) + 'k' : amount;
-      chip.className = `table-chip chip-${amount >= 125000 ? '125k' : amount >= 25000 ? '25k' : amount >= 5000 ? '5000' : amount}`;
-      chip.innerText = valText;
-      chip.style.left = `${x}px`;
-      chip.style.top = `${y}px`;
-      container.appendChild(chip);
-    }
-
     function showToast(winner, p, b, nat) {
       const t = document.getElementById('toast');
       document.getElementById('toast-winner').innerText = (nat ? "NATURAL " : "") + winner + " wins";
@@ -300,6 +324,14 @@
       `).join('');
     }
 
+    function switchPlayer() {
+      cur = document.getElementById('player-select').value;
+      if (!cur) return;
+      document.getElementById('chip-rack').classList.remove('opacity-0');
+      document.getElementById('display-name').innerText = cur;
+      update();
+    }
+
     function selectChip(amount, el) {
       activeChipValue = amount;
       document.querySelectorAll('.chip').forEach(c => c.classList.remove('chip-active'));
@@ -311,6 +343,7 @@
         players[cur].b += (players[cur].bets.player + players[cur].bets.tie + players[cur].bets.banker);
         players[cur].bets = { player: 0, tie: 0, banker: 0 };
         document.querySelectorAll('.chip-area').forEach(c => c.innerHTML = '');
+        chipStackCount = { player: 0, tie: 0, banker: 0 };
         update();
     }
 
@@ -319,6 +352,7 @@
         let p = players[cur];
         let cost = (p.bets.player + p.bets.tie + p.bets.banker);
         if (p.b < cost) return;
+        ['player', 'tie', 'banker'].forEach(zone => { if (p.bets[zone] > 0) createTableChip(p.bets[zone], zone); });
         p.b -= cost;
         p.bets.player *= 2; p.bets.tie *= 2; p.bets.banker *= 2;
         update();
