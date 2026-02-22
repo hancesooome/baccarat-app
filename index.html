@@ -143,10 +143,15 @@
   <script>
     let audioEnabled = true;
     const sounds = {
-        chip: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'),
-        deal: new Audio('https://www.soundjay.com/misc/sounds/card-flip-1.mp3'),
-        win: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3')
-    };
+    // 1. Your Poker Chips Sound
+    chip: new Audio('https://raw.githubusercontent.com/hancesooome/baccarat-app/main/poker-chips.mp3'),
+    
+    // 2. Your Flip Card Sound
+    deal: new Audio('https://raw.githubusercontent.com/hancesooome/baccarat-app/main/flip-card.mp3'),
+    
+    // 3. Your Win Sound
+    win: new Audio('')
+};
     function playSfx(name) { if(audioEnabled) { sounds[name].currentTime=0; sounds[name].play().catch(()=>{}); } }
     function toggleAudio() { audioEnabled = !audioEnabled; document.getElementById('audio-btn').innerText = audioEnabled ? "🔊 Sound On" : "🔇 Sound Off"; }
 
