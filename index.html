@@ -3,60 +3,55 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Armel Baccarat</title>
+  <title>Armel Baccarat - Drag Transfer Fixed</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { 
         background: radial-gradient(circle at center, #1a1c2c 0%, #08080a 100%); 
         min-height: 100vh; color: white; overflow-x: hidden; font-family: sans-serif; 
         display: flex; flex-direction: column; align-items: center;
+        transition: padding 0.3s;
     }
     .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-    
-    /* Progress Bar */
     #timer-bar { height: 4px; background: #fbbf24; width: 100%; transition: width 1s linear; }
 
-    /* Scaling for Mobile Devices */
-    .game-wrapper { width: 100%; max-width: 1100px; padding: 20px; transition: 0.3s; }
-    @media (max-width: 1024px) {
-        .game-wrapper { transform: scale(0.85); transform-origin: top center; margin-top: 40px; }
-        .history-panel { display: none; } /* Hide fixed history on mobile */
-    }
-    @media (max-width: 640px) {
-        .game-wrapper { transform: scale(0.7); margin-top: 20px; }
-        .ml-32 { margin-left: 0 !important; }
+    .game-wrapper { width: 100%; max-width: 900px; padding: 20px; transition: 0.3s; z-index: 10; }
+    
+    @media (min-width: 1151px) {
+        .history-panel { position: fixed; left: 20px; top: 50%; transform: translateY(-50%); width: 260px; height: 600px; }
+        body { padding-left: 280px; } 
     }
 
-    /* Cards Fix */
+    @media (max-width: 1150px) {
+        body { padding-bottom: 40px; padding-left: 0; }
+        .history-panel { position: relative; width: 95%; max-width: 600px; margin: 20px auto; order: 10; }
+        #history-list { display: flex; flex-direction: row; overflow-x: auto; gap: 10px; padding: 10px 5px; }
+        .history-item { min-width: 120px; flex-shrink: 0; }
+        .game-wrapper { transform: scale(0.9); transform-origin: top center; }
+    }
+
+    /* Cards Logic */
     .card { width: 45px; height: 68px; background: white; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: black; font-weight: bold; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.5); animation: deal 0.4s ease-out forwards; flex-shrink: 0; }
     .card.red { color: #ef4444; }
     .card-third { transform: rotate(90deg) !important; border: 1px solid #fbbf24; }
-    @keyframes deal { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-    /* Player 3rd card flows LEFT, Banker 3rd card flows RIGHT */
     #cards-player { flex-direction: row-reverse; } 
     #cards-banker { flex-direction: row; }
 
-    /* Betting Zones */
-    .bet-zone { position: relative; display: flex; flex-direction: column; align-items: center; padding-top: 20px; transition: 0.3s; cursor: pointer; }
-    .zone-hover { background: rgba(255, 255, 255, 0.1) !important; }
-    .betting-closed { opacity: 0.5; pointer-events: none !important; filter: grayscale(0.5); }
-
-    /* Chips Fix - No Clipping */
-    #chip-rack { 
-        padding: 25px 30px 15px 30px; /* Extra top padding for the jump */
-        overflow: visible !important; 
-    }
+    /* Chips & Dragging Fixes */
+    #chip-rack { padding: 35px 30px 15px 30px; overflow: visible !important; }
     .chip { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; border: 3px dashed rgba(255,255,255,0.4); cursor: pointer; transition: 0.2s; font-size: 10px; user-select: none; }
-    .chip-active { transform: scale(1.2) translateY(-15px); border: 3px solid #fbbf24 !important; box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
+    .chip-active { transform: scale(1.2) translateY(-20px); border: 3px solid #fbbf24 !important; box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
     
-    .table-chip { position: absolute; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 900; border: 2px dashed rgba(255,255,255,0.4); left: 50%; transform: translateX(-50%); pointer-events: none; }
-    
+    .table-chip { position: absolute; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 900; border: 2px dashed rgba(255,255,255,0.4); left: 50%; transform: translateX(-50%); cursor: grab; z-index: 50; pointer-events: auto !important; }
     .chip-50 { background: #4b4b4b; } .chip-250 { background: #be123c; } .chip-1250 { background: #15803d; } 
     .chip-5000 { background: #18181b; } .chip-25k { background: #7e22ce; } .chip-125k { background: #a16207; } 
 
     #toast { transition: 0.5s ease; transform: translate(-50%, -100%); opacity: 0; z-index: 1000; left: 50%; }
     #toast.show { transform: translate(-50%, 20px); opacity: 1; }
+    
+    .bet-zone { position: relative; display: flex; flex-direction: column; align-items: center; padding-top: 20px; transition: 0.3s; cursor: pointer; }
+    .betting-closed { opacity: 0.5; pointer-events: none !important; filter: grayscale(0.5); }
+    .chip-area { position: absolute; inset: 0; pointer-events: none; } /* Area is passthrough, chips are active */
   </style>
 </head>
 <body>
@@ -75,13 +70,7 @@
       </div>
   </div>
 
-  <div class="history-panel fixed left-6 top-1/2 -translate-y-1/2 w-64 h-[500px] glass rounded-[30px] p-5 flex flex-col">
-    <h3 class="text-zinc-500 text-[10px] font-black uppercase tracking-[3px] mb-4 border-b border-white/10 pb-2">History</h3>
-    <div id="history-list" class="flex-1 overflow-y-auto space-y-2 pr-2 text-xs"></div>
-  </div>
-
-  <div class="game-wrapper mt-16 sm:ml-32 flex flex-col gap-6">
-    
+  <div class="game-wrapper mt-16 flex flex-col gap-6">
     <div class="w-full flex justify-between items-center glass p-5 rounded-[30px]">
         <div>
             <span class="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Profile</span>
@@ -99,7 +88,7 @@
         </div>
     </div>
 
-    <div class="flex justify-around items-center bg-black/30 rounded-3xl p-6 h-44 border border-white/5">
+    <div class="flex justify-around items-center bg-black/30 rounded-3xl p-6 h-44 border border-white/5 relative">
         <div class="flex flex-col items-center w-64">
             <div id="cards-player" class="flex gap-4 h-[80px] w-full"></div>
             <div class="mt-4 text-[10px] font-bold text-blue-400 uppercase">Player: <span id="score-player" class="text-lg">0</span></div>
@@ -115,17 +104,17 @@
       <div onclick="handleTableClick('player')" ondragover="allowDrop(event)" ondrop="handleDrop('player', event)" class="bet-zone flex-1 border-r border-white/5">
         <span class="text-blue-500 font-black text-lg italic">PLAYER</span>
         <div id="bet-player" class="text-xl font-mono font-bold">₱0</div>
-        <div id="chips-player" class="chip-area absolute inset-0 pointer-events-none"></div>
+        <div id="chips-player" class="chip-area"></div>
       </div>
       <div onclick="handleTableClick('tie')" ondragover="allowDrop(event)" ondrop="handleDrop('tie', event)" class="bet-zone w-1/4 border-r border-white/5 bg-green-900/5">
         <span class="text-green-500 font-bold text-sm">TIE</span>
         <div id="bet-tie" class="text-lg font-mono font-bold">₱0</div>
-        <div id="chips-tie" class="chip-area absolute inset-0 pointer-events-none"></div>
+        <div id="chips-tie" class="chip-area"></div>
       </div>
       <div onclick="handleTableClick('banker')" ondragover="allowDrop(event)" ondrop="handleDrop('banker', event)" class="bet-zone flex-1">
         <span class="text-red-500 font-black text-lg italic">BANKER</span>
         <div id="bet-banker" class="text-xl font-mono font-bold">₱0</div>
-        <div id="chips-banker" class="chip-area absolute inset-0 pointer-events-none"></div>
+        <div id="chips-banker" class="chip-area"></div>
       </div>
     </div>
 
@@ -133,12 +122,12 @@
         <div id="chip-rack" class="flex items-center gap-4 glass rounded-full opacity-0">
           <button onclick="undoBets()" class="text-zinc-500 font-bold text-[10px] uppercase px-4 hover:text-white">Undo</button>
           <div class="flex gap-3">
-            <div draggable="true" ondragstart="startDrag(50, this)" onclick="selectChip(50, this)" class="chip chip-50">50</div>
-            <div draggable="true" ondragstart="startDrag(250, this)" onclick="selectChip(250, this)" class="chip chip-250">250</div>
-            <div draggable="true" ondragstart="startDrag(1250, this)" onclick="selectChip(1250, this)" class="chip chip-1250">1250</div>
-            <div draggable="true" ondragstart="startDrag(5000, this)" onclick="selectChip(5000, this)" class="chip chip-5000">5k</div>
-            <div draggable="true" ondragstart="startDrag(25000, this)" onclick="selectChip(25000, this)" class="chip chip-25k">25k</div>
-            <div draggable="true" ondragstart="startDrag(125000, this)" onclick="selectChip(125000, this)" class="chip chip-125k">125k</div>
+            <div draggable="true" ondragstart="startRackDrag(50, event)" onclick="selectChip(50, this)" class="chip chip-50">50</div>
+            <div draggable="true" ondragstart="startRackDrag(250, event)" onclick="selectChip(250, this)" class="chip chip-250">250</div>
+            <div draggable="true" ondragstart="startRackDrag(1250, event)" onclick="selectChip(1250, this)" class="chip chip-1250">1250</div>
+            <div draggable="true" ondragstart="startRackDrag(5000, event)" onclick="selectChip(5000, this)" class="chip chip-5000">5k</div>
+            <div draggable="true" ondragstart="startRackDrag(25000, event)" onclick="selectChip(25000, this)" class="chip chip-25k">25k</div>
+            <div draggable="true" ondragstart="startRackDrag(125000, event)" onclick="selectChip(125000, this)" class="chip chip-125k">125k</div>
           </div>
           <button onclick="doubleBets()" class="bg-zinc-800 text-white w-10 h-10 rounded-full font-bold ml-2">×2</button>
         </div>
@@ -146,8 +135,12 @@
     </div>
   </div>
 
+  <div class="history-panel glass rounded-[30px] p-5 flex flex-col">
+    <h3 class="text-zinc-500 text-[10px] font-black uppercase tracking-[3px] mb-4 border-b border-white/10 pb-2">History</h3>
+    <div id="history-list" class="flex-1 overflow-y-auto no-scrollbar"></div>
+  </div>
+
   <script>
-    // --- AUDIO ---
     let audioEnabled = true;
     const sounds = {
         chip: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'),
@@ -157,7 +150,6 @@
     function playSfx(name) { if(audioEnabled) { sounds[name].currentTime=0; sounds[name].play().catch(()=>{}); } }
     function toggleAudio() { audioEnabled = !audioEnabled; document.getElementById('audio-btn').innerText = audioEnabled ? "🔊 Sound On" : "🔇 Sound Off"; }
 
-    // --- STATE ---
     let players = JSON.parse(localStorage.getItem('baccarat_db')) || {
       "Gabbi": { b: 100000, bets: { player: 0, tie: 0, banker: 0 }, h: [] },
       "Yowe":  { b: 100000, bets: { player: 0, tie: 0, banker: 0 }, h: [] },
@@ -170,6 +162,7 @@
 
     let chipStackCount = { player: 0, tie: 0, banker: 0 };
     let cur = null, activeChipValue = null, timerVal = 15, isBettingOpen = false;
+    let dragData = null;
 
     function save() { localStorage.setItem('baccarat_db', JSON.stringify(players)); }
     function getVal(idx) { return idx === 0 ? 1 : (idx >= 9 ? 0 : idx + 1); }
@@ -180,24 +173,51 @@
       update();
     }
 
-    // --- BETTING ---
     function selectChip(val, el) {
       activeChipValue = val;
       document.querySelectorAll('.chip').forEach(c => c.classList.remove('chip-active'));
       el.classList.add('chip-active');
     }
 
-    function startDrag(val, el) { if(!isBettingOpen) return; selectChip(val, el); }
-    function allowDrop(e) { e.preventDefault(); }
-    function handleDrop(zone, e) { e.preventDefault(); if(isBettingOpen) processBet(zone); }
-    function handleTableClick(zone) { if(isBettingOpen) processBet(zone); }
+    function startRackDrag(val, e) {
+        if(!isBettingOpen) return;
+        dragData = { type: 'new', value: val };
+    }
 
-    function processBet(zone) {
-        if (!cur || !activeChipValue || players[cur].b < activeChipValue) return;
+    function startTableDrag(zone, amount, e) {
+        if(!isBettingOpen) return;
+        dragData = { type: 'transfer', from: zone, value: amount };
+    }
+
+    function allowDrop(e) { e.preventDefault(); }
+
+    function handleDrop(toZone, e) {
+        e.preventDefault();
+        if (!isBettingOpen || !dragData || !cur) return;
+
+        if (dragData.type === 'new') {
+            processBet(toZone, dragData.value);
+        } else if (dragData.type === 'transfer' && dragData.from !== toZone) {
+            let amount = players[cur].bets[dragData.from];
+            players[cur].bets[toZone] += amount;
+            players[cur].bets[dragData.from] = 0;
+            playSfx('chip');
+            redrawTableChips();
+            update(); save();
+        }
+        dragData = null;
+    }
+
+    function handleTableClick(zone) {
+        if (isBettingOpen && activeChipValue) processBet(zone, activeChipValue);
+    }
+
+    function processBet(zone, amount) {
+        if (!cur || players[cur].b < amount) return;
         playSfx('chip');
-        players[cur].b -= activeChipValue;
-        players[cur].bets[zone] += activeChipValue;
-        createTableChip(activeChipValue, zone);
+        players[cur].b -= amount;
+        players[cur].bets[zone] += amount;
+        createTableChip(amount, zone);
         update(); save();
     }
 
@@ -205,10 +225,27 @@
       const container = document.getElementById(`chips-${zone}`);
       const chip = document.createElement('div');
       const stack = chipStackCount[zone] * 4; chipStackCount[zone]++;
+      
+      const visualVal = amount >= 1000 ? (amount/1000)+'k' : amount;
       chip.className = `table-chip chip-${amount >= 125000 ? '125k' : amount >= 25000 ? '25k' : amount >= 5000 ? '5000' : '50'}`;
-      chip.innerText = amount >= 1000 ? (amount/1000)+'k' : amount;
+      chip.innerText = visualVal;
       chip.style.bottom = (40 + stack) + "px";
+      chip.draggable = true;
+      
+      chip.onmousedown = () => { dragData = { type: 'transfer', from: zone, value: amount }; };
+      chip.ondragstart = (e) => { e.dataTransfer.setData("text", "chip"); };
+      
       container.appendChild(chip);
+    }
+
+    function redrawTableChips() {
+        ['player','tie','banker'].forEach(z => {
+            document.getElementById(`chips-${z}`).innerHTML = '';
+            chipStackCount[z] = 0;
+            if(players[cur].bets[z] > 0) {
+                createTableChip(players[cur].bets[z], z);
+            }
+        });
     }
 
     function startBettingRound() {
@@ -236,10 +273,8 @@
         document.getElementById('cards-banker').innerHTML = '';
         let pHand = [Math.floor(Math.random()*13), Math.floor(Math.random()*13)];
         let bHand = [Math.floor(Math.random()*13), Math.floor(Math.random()*13)];
-        
         await renderCard('player', pHand[0]); await renderCard('banker', bHand[0]);
         await renderCard('player', pHand[1]); await renderCard('banker', bHand[1]);
-        
         let pT = (getVal(pHand[0]) + getVal(pHand[1])) % 10;
         let bT = (getVal(bHand[0]) + getVal(bHand[1])) % 10;
         document.getElementById('score-player').innerText = pT;
@@ -310,7 +345,7 @@
       document.getElementById('bet-tie').innerText = "₱" + p.bets.tie.toLocaleString();
       document.getElementById('bet-banker').innerText = "₱" + p.bets.banker.toLocaleString();
       document.getElementById('history-list').innerHTML = p.h.slice(0,10).map(e => `
-        <div class="bg-white/5 p-2 rounded-lg flex justify-between text-[10px]">
+        <div class="history-item bg-white/5 p-2 rounded-lg flex justify-between text-[10px] mb-1">
           <span class="uppercase font-bold ${e.winner==='player'?'text-blue-400':e.winner==='banker'?'text-red-400':'text-green-400'}">${e.winner}</span>
           <span class="${e.net>=0?'text-green-500':'text-red-500'}">${e.net>=0?'+':''}${e.net.toLocaleString()}</span>
         </div>`).join('');
@@ -329,8 +364,8 @@
         if(!cur || !isBettingOpen) return;
         let p = players[cur]; let cost = (p.bets.player + p.bets.tie + p.bets.banker);
         if(cost === 0 || p.b < cost) return;
-        ['player','tie','banker'].forEach(z => { if(p.bets[z]>0) createTableChip(p.bets[z], z); });
         p.b -= cost; p.bets.player *= 2; p.bets.tie *= 2; p.bets.banker *= 2;
+        redrawTableChips();
         update();
     }
 
