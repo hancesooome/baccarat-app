@@ -8,13 +8,37 @@
     body { background: radial-gradient(circle at center, #1a1c2c 0%, #08080a 100%); min-height: 100vh; color: white; overflow: hidden; }
     .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
     .drag-hover { background-color: rgba(255, 255, 255, 0.1) !important; border-color: rgba(255, 255, 255, 0.5) !important; transform: scale(1.01); }
-    .chip { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; border: 4px dashed rgba(255,255,255,0.4); box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: grab; transition: transform 0.2s; font-size: 12px; }
-    .chip-50 { background: #4b4b4b; } .chip-250 { background: #be123c; } .chip-1250 { background: #15803d; } .chip-5000 { background: #18181b; border-color: #ffffff; } .chip-25k { background: #7e22ce; border-color: #d8b4fe; } .chip-125k { background: #a16207; border-color: #fef08a; } 
+    
+    /* Updated Chip Styles */
+    .chip { 
+      width: 60px; height: 60px; border-radius: 50%; 
+      display: flex; align-items: center; justify-content: center; 
+      font-weight: 900; border: 4px dashed rgba(255,255,255,0.4); 
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: pointer; 
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+      font-size: 12px; user-select: none;
+    }
+    
+    /* Highlight/Scale Effect for Selected Chip */
+    .chip-active {
+      transform: scale(1.25) translateY(-8px);
+      border: 4px solid #fbbf24 !important; /* Gold highlight */
+      box-shadow: 0 12px 24px rgba(0,0,0,0.6), 0 0 15px rgba(251, 191, 36, 0.4);
+      z-index: 50;
+    }
+
+    .chip-50 { background: #4b4b4b; } .chip-250 { background: #be123c; } .chip-1250 { background: #15803d; } 
+    .chip-5000 { background: #18181b; border-color: #ffffff; } .chip-25k { background: #7e22ce; border-color: #d8b4fe; } 
+    .chip-125k { background: #a16207; border-color: #fef08a; } 
+    
     .negative { color: #ef4444 !important; }
     #toast { transition: all 0.5s ease; transform: translate(-50%, -100%); opacity: 0; }
     #toast.show { transform: translate(-50%, 20px); opacity: 1; }
     #history-list::-webkit-scrollbar { width: 4px; }
     #history-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    
+    .bet-zone { cursor: pointer; transition: background 0.2s; }
+    .bet-zone:hover { background-color: rgba(255, 255, 255, 0.05); }
   </style>
 </head>
 <body class="flex flex-col items-center justify-between py-10 px-6">
@@ -47,15 +71,15 @@
 
   <div class="w-full max-w-4xl ml-32">
     <div class="flex h-72 w-full rounded-[150px] overflow-hidden border-2 border-white/10 bg-black/40 shadow-2xl relative">
-      <div ondragover="hOver(event)" ondragleave="hLeave(event)" ondrop="hDrop(event, 'player')" class="flex-1 flex flex-col items-center justify-center border-r border-white/5 transition-all">
+      <div onclick="handleTableClick('player')" ondragover="hOver(event)" ondragleave="hLeave(event)" ondrop="hDrop(event, 'player')" class="bet-zone flex-1 flex flex-col items-center justify-center border-r border-white/5">
         <span class="text-blue-500 font-black tracking-widest text-2xl italic">PLAYER</span>
         <div id="bet-player" class="text-3xl font-mono mt-2 text-white font-bold">₱0</div>
       </div>
-      <div ondragover="hOver(event)" ondragleave="hLeave(event)" ondrop="hDrop(event, 'tie')" class="w-1/4 flex flex-col items-center justify-center border-r border-white/5 bg-green-900/10">
+      <div onclick="handleTableClick('tie')" ondragover="hOver(event)" ondragleave="hLeave(event)" ondrop="hDrop(event, 'tie')" class="bet-zone w-1/4 flex flex-col items-center justify-center border-r border-white/5 bg-green-900/10">
         <span class="text-green-500 font-bold text-lg tracking-widest">TIE</span>
         <div id="bet-tie" class="text-2xl font-mono mt-1 text-white font-bold">₱0</div>
       </div>
-      <div ondragover="hOver(event)" ondragleave="hLeave(event)" ondrop="hDrop(event, 'banker')" class="flex-1 flex flex-col items-center justify-center">
+      <div onclick="handleTableClick('banker')" ondragover="hOver(event)" ondragleave="hLeave(event)" ondrop="hDrop(event, 'banker')" class="bet-zone flex-1 flex flex-col items-center justify-center">
         <span class="text-red-500 font-black tracking-widest text-2xl italic">BANKER</span>
         <div id="bet-banker" class="text-3xl font-mono mt-2 text-white font-bold">₱0</div>
       </div>
@@ -66,12 +90,12 @@
     <div id="chip-rack" class="flex items-center gap-4 p-4 glass rounded-full opacity-0 pointer-events-none transition-all duration-500 transform translate-y-4 border-white/10">
       <button onclick="undo()" class="text-zinc-400 font-bold text-xs uppercase hover:text-white px-2">Undo</button>
       <div class="flex gap-3">
-        <div draggable="true" ondragstart="hStart(50)" class="chip chip-50">50</div>
-        <div draggable="true" ondragstart="hStart(250)" class="chip chip-250">250</div>
-        <div draggable="true" ondragstart="hStart(1250)" class="chip chip-1250">1250</div>
-        <div draggable="true" ondragstart="hStart(5000)" class="chip chip-5000">5000</div>
-        <div draggable="true" ondragstart="hStart(25000)" class="chip chip-25k">25k</div>
-        <div draggable="true" ondragstart="hStart(125000)" class="chip chip-125k">125k</div>
+        <div onclick="selectChip(50, this)" draggable="true" ondragstart="hStart(50, this)" class="chip chip-50">50</div>
+        <div onclick="selectChip(250, this)" draggable="true" ondragstart="hStart(250, this)" class="chip chip-250">250</div>
+        <div onclick="selectChip(1250, this)" draggable="true" ondragstart="hStart(1250, this)" class="chip chip-1250">1250</div>
+        <div onclick="selectChip(5000, this)" draggable="true" ondragstart="hStart(5000, this)" class="chip chip-5000">5000</div>
+        <div onclick="selectChip(25000, this)" draggable="true" ondragstart="hStart(25000, this)" class="chip chip-25k">25k</div>
+        <div onclick="selectChip(125000, this)" draggable="true" ondragstart="hStart(125000, this)" class="chip chip-125k">125k</div>
       </div>
       <button onclick="double()" class="bg-zinc-800 text-white w-10 h-10 rounded-full font-bold border border-white/20 hover:bg-zinc-700 transition-colors">×</2</button>
     </div>
@@ -107,7 +131,10 @@
       "GK":    { b: 0, bets: { player: 0, tie: 0, banker: 0 }, h: [] }
     };
 
-    let cur = null; let dVal = 0;
+    let cur = null; 
+    let dVal = 0; // Drag value
+    let activeChipValue = null; // Click-to-bet value
+
     function save() { localStorage.setItem('baccarat_db', JSON.stringify(players)); }
 
     function switchPlayer() {
@@ -121,7 +148,27 @@
       update();
     }
 
-    function hStart(v) { dVal = v; event.dataTransfer.setData("text", v); }
+    // --- SELECTION LOGIC ---
+    function selectChip(amount, el) {
+      activeChipValue = amount;
+      // UI feedback for selection
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('chip-active'));
+      el.classList.add('chip-active');
+    }
+
+    function handleTableClick(zone) {
+      if (!cur || activeChipValue === null) return;
+      players[cur].b -= activeChipValue;
+      players[cur].bets[zone] += activeChipValue;
+      update(); save();
+    }
+
+    // --- DRAG LOGIC ---
+    function hStart(v, el) { 
+      dVal = v; 
+      selectChip(v, el); // Selecting while dragging too
+      event.dataTransfer.setData("text", v); 
+    }
     function hOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-hover'); }
     function hLeave(e) { e.currentTarget.classList.remove('drag-hover'); }
     function hDrop(e, z) {
@@ -132,6 +179,7 @@
       update(); save();
     }
 
+    // --- GAME ACTIONS ---
     function undo() {
       if (!cur) return;
       players[cur].b += (players[cur].bets.player + players[cur].bets.tie + players[cur].bets.banker);
