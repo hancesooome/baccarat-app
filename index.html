@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Armel Baccarat Studio</title>
+  <title>Armel Baccarat Studio - Persistent Stacks</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background: radial-gradient(circle at center, #1a1c2c 0%, #08080a 100%); min-height: 100vh; color: white; overflow: hidden; }
+    body { background: radial-gradient(circle at center, #1a1c2c 0%, #08080a 100%); min-height: 100vh; color: white; overflow: hidden; font-family: sans-serif; }
     .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-    .drag-hover { background-color: rgba(255, 255, 255, 0.1) !important; border-color: rgba(255, 255, 255, 0.5) !important; transform: scale(1.01); }
+    .drag-hover { background-color: rgba(255, 255, 255, 0.1) !important; border-color: rgba(255, 255, 255, 0.5) !important; }
     
-    /* Updated Chip Styles */
+    /* Active Chip in Rack */
     .chip { 
       width: 60px; height: 60px; border-radius: 50%; 
       display: flex; align-items: center; justify-content: center; 
@@ -18,27 +18,27 @@
       transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
       font-size: 12px; user-select: none;
     }
-    
-    /* Highlight/Scale Effect for Selected Chip */
-    .chip-active {
-      transform: scale(1.25) translateY(-8px);
-      border: 4px solid #fbbf24 !important; /* Gold highlight */
-      box-shadow: 0 12px 24px rgba(0,0,0,0.6), 0 0 15px rgba(251, 191, 36, 0.4);
-      z-index: 50;
+    .chip-active { transform: scale(1.3) translateY(-12px); border: 4px solid #fbbf24 !important; box-shadow: 0 15px 30px rgba(0,0,0,0.7), 0 0 20px rgba(251, 191, 36, 0.5); z-index: 50; }
+
+    /* Chips on the Table */
+    .table-chip {
+      position: absolute; width: 45px; height: 45px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; 
+      font-size: 10px; font-weight: 900; border: 2px dashed rgba(255,255,255,0.5);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4); pointer-events: none;
+      transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .chip-50 { background: #4b4b4b; } .chip-250 { background: #be123c; } .chip-1250 { background: #15803d; } 
     .chip-5000 { background: #18181b; border-color: #ffffff; } .chip-25k { background: #7e22ce; border-color: #d8b4fe; } 
     .chip-125k { background: #a16207; border-color: #fef08a; } 
     
-    .negative { color: #ef4444 !important; }
+    .bet-zone { position: relative; cursor: pointer; display: flex; flex-direction: column; align-items: center; padding-top: 20px; transition: background 0.3s; }
+    .bet-zone:hover { background-color: rgba(255, 255, 255, 0.03); }
+    .chip-container { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+    
     #toast { transition: all 0.5s ease; transform: translate(-50%, -100%); opacity: 0; }
     #toast.show { transform: translate(-50%, 20px); opacity: 1; }
-    #history-list::-webkit-scrollbar { width: 4px; }
-    #history-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-    
-    .bet-zone { cursor: pointer; transition: background 0.2s; }
-    .bet-zone:hover { background-color: rgba(255, 255, 255, 0.05); }
   </style>
 </head>
 <body class="flex flex-col items-center justify-between py-10 px-6">
@@ -49,9 +49,7 @@
 
   <div class="fixed left-6 top-1/2 -translate-y-1/2 w-64 h-[500px] glass rounded-[30px] p-5 flex flex-col border-white/5">
     <h3 class="text-zinc-500 text-[10px] font-black uppercase tracking-[3px] mb-4 border-b border-white/10 pb-2">Player History</h3>
-    <div id="history-list" class="flex-1 overflow-y-auto space-y-3 pr-2 text-[11px] font-mono">
-      <div class="text-zinc-600 italic">No rounds recorded...</div>
-    </div>
+    <div id="history-list" class="flex-1 overflow-y-auto space-y-3 pr-2 text-[11px] font-mono"></div>
     <button onclick="clearHistory()" class="mt-4 text-zinc-600 hover:text-red-400 text-[9px] uppercase font-bold transition-colors">Clear History</button>
   </div>
 
@@ -61,7 +59,6 @@
       <h2 id="display-name" class="text-2xl font-black text-yellow-500 italic">Select Player...</h2>
     </div>
     <div class="flex gap-4 items-center">
-      <button onclick="downloadLogs()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[10px] font-bold py-2 px-4 rounded-full border border-white/10 transition-colors">DOWNLOAD LOGS</button>
       <div class="text-right">
         <span class="text-zinc-500 text-[10px] uppercase font-bold block tracking-widest">Bankroll</span>
         <h2 class="text-3xl font-mono font-bold text-white tracking-tighter">₱<span id="display-balance">0</span></h2>
@@ -70,54 +67,55 @@
   </div>
 
   <div class="w-full max-w-4xl ml-32">
-    <div class="flex h-72 w-full rounded-[150px] overflow-hidden border-2 border-white/10 bg-black/40 shadow-2xl relative">
-      <div onclick="handleTableClick('player')" ondragover="hOver(event)" ondragleave="hLeave(event)" ondrop="hDrop(event, 'player')" class="bet-zone flex-1 flex flex-col items-center justify-center border-r border-white/5">
-        <span class="text-blue-500 font-black tracking-widest text-2xl italic">PLAYER</span>
-        <div id="bet-player" class="text-3xl font-mono mt-2 text-white font-bold">₱0</div>
+    <div class="flex h-80 w-full rounded-[150px] overflow-hidden border-2 border-white/10 bg-black/40 shadow-2xl relative">
+      
+      <div onclick="handleTableClick('player', event)" ondragover="hOver(event)" ondrop="hDrop(event, 'player')" class="bet-zone flex-1 border-r border-white/5">
+        <span class="text-blue-500 font-black tracking-widest text-xl italic z-10">PLAYER</span>
+        <div id="bet-player" class="text-2xl font-mono text-white font-bold z-10">₱0</div>
+        <div id="chips-player" class="chip-container"></div>
       </div>
-      <div onclick="handleTableClick('tie')" ondragover="hOver(event)" ondragleave="hLeave(event)" ondrop="hDrop(event, 'tie')" class="bet-zone w-1/4 flex flex-col items-center justify-center border-r border-white/5 bg-green-900/10">
-        <span class="text-green-500 font-bold text-lg tracking-widest">TIE</span>
-        <div id="bet-tie" class="text-2xl font-mono mt-1 text-white font-bold">₱0</div>
+
+      <div onclick="handleTableClick('tie', event)" ondragover="hOver(event)" ondrop="hDrop(event, 'tie')" class="bet-zone w-1/4 border-r border-white/5 bg-green-900/10">
+        <span class="text-green-500 font-bold text-lg tracking-widest z-10">TIE</span>
+        <div id="bet-tie" class="text-xl font-mono text-white font-bold z-10">₱0</div>
+        <div id="chips-tie" class="chip-container"></div>
       </div>
-      <div onclick="handleTableClick('banker')" ondragover="hOver(event)" ondragleave="hLeave(event)" ondrop="hDrop(event, 'banker')" class="bet-zone flex-1 flex flex-col items-center justify-center">
-        <span class="text-red-500 font-black tracking-widest text-2xl italic">BANKER</span>
-        <div id="bet-banker" class="text-3xl font-mono mt-2 text-white font-bold">₱0</div>
+
+      <div onclick="handleTableClick('banker', event)" ondragover="hOver(event)" ondrop="hDrop(event, 'banker')" class="bet-zone flex-1">
+        <span class="text-red-500 font-black tracking-widest text-xl italic z-10">BANKER</span>
+        <div id="bet-banker" class="text-2xl font-mono text-white font-bold z-10">₱0</div>
+        <div id="chips-banker" class="chip-container"></div>
       </div>
+
     </div>
   </div>
 
   <div class="w-full max-w-4xl ml-32 flex flex-col items-center gap-8">
-    <div id="chip-rack" class="flex items-center gap-4 p-4 glass rounded-full opacity-0 pointer-events-none transition-all duration-500 transform translate-y-4 border-white/10">
-      <button onclick="undo()" class="text-zinc-400 font-bold text-xs uppercase hover:text-white px-2">Undo</button>
+    <div id="chip-rack" class="flex items-center gap-4 p-4 glass rounded-full opacity-0 pointer-events-none transition-all duration-500 border-white/10">
+      <button onclick="undoBets()" class="text-zinc-400 font-bold text-xs uppercase hover:text-white px-2">Undo</button>
       <div class="flex gap-3">
         <div onclick="selectChip(50, this)" draggable="true" ondragstart="hStart(50, this)" class="chip chip-50">50</div>
         <div onclick="selectChip(250, this)" draggable="true" ondragstart="hStart(250, this)" class="chip chip-250">250</div>
         <div onclick="selectChip(1250, this)" draggable="true" ondragstart="hStart(1250, this)" class="chip chip-1250">1250</div>
-        <div onclick="selectChip(5000, this)" draggable="true" ondragstart="hStart(5000, this)" class="chip chip-5000">5000</div>
+        <div onclick="selectChip(5000, this)" draggable="true" ondragstart="hStart(5000, this)" class="chip chip-5000">5k</div>
         <div onclick="selectChip(25000, this)" draggable="true" ondragstart="hStart(25000, this)" class="chip chip-25k">25k</div>
         <div onclick="selectChip(125000, this)" draggable="true" ondragstart="hStart(125000, this)" class="chip chip-125k">125k</div>
       </div>
-      <button onclick="double()" class="bg-zinc-800 text-white w-10 h-10 rounded-full font-bold border border-white/20 hover:bg-zinc-700 transition-colors">×</2</button>
+      <button onclick="doubleBets()" class="bg-zinc-800 text-white w-10 h-10 rounded-full font-bold border border-white/20 hover:bg-zinc-700">×2</button>
     </div>
 
-    <div class="flex items-center gap-4 bg-zinc-900 p-2 pl-6 rounded-full border border-white/10 shadow-xl">
-      <select id="player-select" onchange="switchPlayer()" class="bg-transparent text-white font-bold px-4 py-2 outline-none cursor-pointer">
-        <option value="" class="bg-zinc-900">Select Account...</option>
-        <option value="Gabbi" class="bg-zinc-900">Gabbi</option>
-        <option value="Yowe" class="bg-zinc-900">Yowe</option>
-        <option value="Lash" class="bg-zinc-900">Lash</option>
-        <option value="Jabo" class="bg-zinc-900">Jabo</option>
-        <option value="Kuku" class="bg-zinc-900">Kuku</option>
-        <option value="DJ" class="bg-zinc-900">DJ</option>
-        <option value="GK" class="bg-zinc-900">GK</option>
-      </select>
-    </div>
+    <select id="player-select" onchange="switchPlayer()" class="bg-zinc-900 text-white font-bold px-6 py-3 rounded-full border border-white/10 outline-none">
+        <option value="">Select Account...</option>
+        <option value="Gabbi">Gabbi</option><option value="Yowe">Yowe</option>
+        <option value="Lash">Lash</option><option value="Jabo">Jabo</option>
+        <option value="Kuku">Kuku</option><option value="DJ">DJ</option><option value="GK">GK</option>
+    </select>
   </div>
 
   <div class="fixed right-8 top-1/2 -translate-y-1/2 flex flex-col gap-3">
-    <button onclick="resolveAll('player')" class="bg-blue-600 hover:bg-blue-500 p-5 rounded-2xl font-black text-xs shadow-lg transition-transform active:scale-95">PLAYER WINS</button>
-    <button onclick="resolveAll('banker')" class="bg-red-600 hover:bg-red-500 p-5 rounded-2xl font-black text-xs shadow-lg transition-transform active:scale-95">BANKER WINS</button>
-    <button onclick="resolveAll('tie')" class="bg-green-600 hover:bg-green-500 p-5 rounded-2xl font-black text-xs shadow-lg transition-transform active:scale-95">TIE WINS</button>
+    <button onclick="resolveAll('player')" class="bg-blue-600 hover:bg-blue-500 p-5 rounded-2xl font-black text-xs">PLAYER WINS</button>
+    <button onclick="resolveAll('banker')" class="bg-red-600 hover:bg-red-500 p-5 rounded-2xl font-black text-xs">BANKER WINS</button>
+    <button onclick="resolveAll('tie')" class="bg-green-600 hover:bg-green-500 p-5 rounded-2xl font-black text-xs">TIE WINS</button>
   </div>
 
   <script>
@@ -131,9 +129,7 @@
       "GK":    { b: 0, bets: { player: 0, tie: 0, banker: 0 }, h: [] }
     };
 
-    let cur = null; 
-    let dVal = 0; // Drag value
-    let activeChipValue = null; // Click-to-bet value
+    let cur = null; let activeChipValue = null; let dVal = 0;
 
     function save() { localStorage.setItem('baccarat_db', JSON.stringify(players)); }
 
@@ -142,99 +138,98 @@
       if (!cur) return;
       document.getElementById('chip-rack').style.opacity = "1";
       document.getElementById('chip-rack').style.pointerEvents = "auto";
-      document.getElementById('chip-rack').style.transform = "translateY(0)";
       document.getElementById('user-info').style.opacity = "1";
       document.getElementById('display-name').innerText = cur;
       update();
     }
 
-    // --- SELECTION LOGIC ---
     function selectChip(amount, el) {
       activeChipValue = amount;
-      // UI feedback for selection
       document.querySelectorAll('.chip').forEach(c => c.classList.remove('chip-active'));
       el.classList.add('chip-active');
     }
 
-    function handleTableClick(zone) {
+    function createTableChip(amount, zone) {
+      const container = document.getElementById(`chips-${zone}`);
+      const chip = document.createElement('div');
+      const chipClass = amount >= 125000 ? '125k' : amount >= 25000 ? '25k' : amount >= 5000 ? '5000' : amount;
+      chip.className = `table-chip chip-${chipClass}`;
+      chip.innerText = amount >= 1000 ? (amount / 1000) + 'k' : amount;
+      
+      // Random position in the center stack
+      const rX = (Math.random() - 0.5) * 100;
+      const rY = (Math.random() - 0.5) * 60;
+      chip.style.transform = `translate(${rX}px, ${rY}px)`;
+      
+      container.appendChild(chip);
+    }
+
+    function handleTableClick(zone, e) {
       if (!cur || activeChipValue === null) return;
       players[cur].b -= activeChipValue;
       players[cur].bets[zone] += activeChipValue;
+      createTableChip(activeChipValue, zone);
       update(); save();
     }
 
-    // --- DRAG LOGIC ---
-    function hStart(v, el) { 
-      dVal = v; 
-      selectChip(v, el); // Selecting while dragging too
-      event.dataTransfer.setData("text", v); 
-    }
+    function hStart(v, el) { dVal = v; selectChip(v, el); event.dataTransfer.setData("text", v); }
     function hOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-hover'); }
-    function hLeave(e) { e.currentTarget.classList.remove('drag-hover'); }
     function hDrop(e, z) {
       e.preventDefault(); e.currentTarget.classList.remove('drag-hover');
       if (!cur) return;
       players[cur].b -= dVal;
       players[cur].bets[z] += dVal;
+      createTableChip(dVal, z);
       update(); save();
     }
 
-    // --- GAME ACTIONS ---
-    function undo() {
+    function undoBets() {
       if (!cur) return;
       players[cur].b += (players[cur].bets.player + players[cur].bets.tie + players[cur].bets.banker);
       players[cur].bets = { player: 0, tie: 0, banker: 0 };
+      document.querySelectorAll('.chip-container').forEach(c => c.innerHTML = '');
       update(); save();
     }
 
-    function double() {
-      if (!cur) return;
-      let p = players[cur];
-      p.b -= (p.bets.player + p.bets.tie + p.bets.banker);
-      p.bets.player *= 2; p.bets.tie *= 2; p.bets.banker *= 2;
-      update(); save();
+    function doubleBets() {
+        if (!cur) return;
+        const p = players[cur];
+        // For visual simplicity, we'll just re-render chips for the new total
+        const oldBets = {...p.bets};
+        p.b -= (p.bets.player + p.bets.tie + p.bets.banker);
+        p.bets.player *= 2; p.bets.tie *= 2; p.bets.banker *= 2;
+        
+        // Add one visual chip for each zone that was doubled
+        if(oldBets.player > 0) createTableChip(oldBets.player, 'player');
+        if(oldBets.tie > 0) createTableChip(oldBets.tie, 'tie');
+        if(oldBets.banker > 0) createTableChip(oldBets.banker, 'banker');
+        
+        update(); save();
     }
 
     function resolveAll(winner) {
       const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      
       Object.keys(players).forEach(name => {
         let p = players[name];
         let totalBet = p.bets.player + p.bets.banker + p.bets.tie;
         if (totalBet === 0) return; 
-
-        let winAmount = 0;
-        let refundAmount = 0;
-
-        if (winner === 'player') {
-          winAmount = p.bets.player * 2;
-        } else if (winner === 'banker') {
-          winAmount = p.bets.banker * 1.95;
-        } else if (winner === 'tie') {
-          winAmount = p.bets.tie * 9;
-          refundAmount = (p.bets.player + p.bets.banker);
-        }
-
+        let winAmount = 0, refundAmount = 0;
+        if (winner === 'player') winAmount = p.bets.player * 2;
+        else if (winner === 'banker') winAmount = p.bets.banker * 1.95;
+        else if (winner === 'tie') { winAmount = p.bets.tie * 9; refundAmount = (p.bets.player + p.bets.banker); }
         let net = (Math.floor(winAmount) + refundAmount) - totalBet;
         p.b += (Math.floor(winAmount) + refundAmount);
-        
-        let status = "LOST";
-        if (net > 0) status = "WON";
-        else if (net === 0) status = "PUSH";
-
-        if (!p.h) p.h = [];
-        p.h.unshift({ time, winner, net, status });
-        if (p.h.length > 20) p.h.pop();
-
+        p.h.unshift({ time, winner, net, status: net > 0 ? "WON" : net === 0 ? "PUSH" : "LOST" });
         p.bets = { player: 0, tie: 0, banker: 0 };
       });
-      showToast(winner); update(); save();
-    }
+      
+      // Clear all physical chips from the table
+      document.querySelectorAll('.chip-container').forEach(c => {
+          c.childNodes.forEach(chip => chip.style.opacity = '0');
+          setTimeout(() => c.innerHTML = '', 500);
+      });
 
-    function clearHistory() {
-      if (!cur) return;
-      players[cur].h = [];
-      update(); save();
+      showToast(winner); update(); save();
     }
 
     function showToast(winner) {
@@ -250,47 +245,19 @@
       if (!cur) return;
       const p = players[cur];
       document.getElementById('display-balance').innerText = p.b.toLocaleString();
-      document.getElementById('display-balance').parentElement.classList.toggle('negative', p.b < 0);
       document.getElementById('bet-player').innerText = "₱" + p.bets.player.toLocaleString();
       document.getElementById('bet-tie').innerText = "₱" + p.bets.tie.toLocaleString();
       document.getElementById('bet-banker').innerText = "₱" + p.bets.banker.toLocaleString();
-
+      
       const histEl = document.getElementById('history-list');
-      histEl.innerHTML = "";
-      if (!p.h || p.h.length === 0) {
-        histEl.innerHTML = '<div class="text-zinc-600 italic">No rounds recorded...</div>';
-      } else {
-        p.h.forEach(entry => {
-          const color = entry.status === "WON" ? "text-green-500" : entry.status === "LOST" ? "text-red-500" : "text-zinc-400";
-          const sign = entry.net > 0 ? "+" : "";
-          histEl.innerHTML += `
-            <div class="bg-white/5 p-2 rounded-lg border border-white/5">
-              <div class="flex justify-between text-[9px] text-zinc-500 mb-1">
-                <span>${entry.time}</span>
-                <span class="font-bold uppercase">${entry.winner} WIN</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="font-black ${color}">${entry.status}</span>
-                <span class="font-bold ${color}">${sign}${entry.net.toLocaleString()}</span>
-              </div>
-            </div>
-          `;
-        });
-      }
+      histEl.innerHTML = p.h.length ? "" : '<div class="text-zinc-600 italic">No rounds...</div>';
+      p.h.slice(0, 15).forEach(e => {
+          const color = e.status === "WON" ? "text-green-500" : e.status === "LOST" ? "text-red-500" : "text-zinc-400";
+          histEl.innerHTML += `<div class="bg-white/5 p-2 rounded-lg border border-white/5 flex justify-between items-center"><span class="${color} font-black">${e.status}</span><span class="${color} font-bold">${e.net > 0 ? '+':''}${e.net.toLocaleString()}</span></div>`;
+      });
     }
 
-    function downloadLogs() {
-      let now = new Date().toLocaleString();
-      let content = `BACCARAT STUDIO LOGS - ${now}\n==========================================\n\n`;
-      Object.keys(players).forEach(name => {
-        content += `${name}: ₱${players[name].b.toLocaleString()}\n`;
-      });
-      let blob = new Blob([content], { type: "text/plain" });
-      let a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `Baccarat_Logs.txt`;
-      a.click();
-    }
+    function clearHistory() { if (cur) { players[cur].h = []; update(); save(); } }
   </script>
 </body>
 </html>
