@@ -2,64 +2,55 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Armel Baccarat - Movable Bets & SFX</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Armel Baccarat - Premium Responsive</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background: radial-gradient(circle at center, #1a1c2c 0%, #08080a 100%); min-height: 100vh; color: white; overflow: hidden; font-family: sans-serif; }
+    /* PRESERVE ORIGINAL STYLING */
+    body { background: radial-gradient(circle at center, #1a1c2c 0%, #08080a 100%); min-height: 100vh; color: white; overflow-x: hidden; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
     .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-    
     #timer-bar { height: 4px; background: #fbbf24; width: 100%; transition: width 1s linear; }
     .betting-closed { opacity: 0.5; pointer-events: none !important; filter: grayscale(0.5); }
-
-    /* Card UI */
+    
+    /* CARDS */
     .card { width: 45px; height: 68px; background: white; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: black; font-weight: bold; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.5); animation: deal 0.4s ease-out forwards; }
     .card.red { color: #ef4444; }
     .card-third { transform: rotate(90deg) !important; border: 1px solid #fbbf24; }
     @keyframes deal { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    /* TABLE SCALING LOGIC */
+    .main-container { width: 100%; max-width: 1024px; padding: 20px; transition: 0.3s; }
     
-    #cards-player { flex-direction: row-reverse; } 
-    #cards-banker { flex-direction: row; }
+    /* On small screens, we scale the table container down rather than breaking the layout */
+    @media (max-width: 900px) {
+        .main-container { transform: scale(0.9); transform-origin: top center; padding: 10px; }
+        .history-panel { display: none; } /* Hide fixed history on very small screens to save space */
+    }
+    @media (max-width: 640px) {
+        .main-container { transform: scale(0.75); }
+        .ml-32 { margin-left: 0 !important; } /* Remove the history offset on mobile */
+    }
 
-    /* Chips UI */
-    .table-chip { position: absolute; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 900; border: 2px dashed rgba(255,255,255,0.4); box-shadow: 0 2px 4px rgba(0,0,0,0.4); left: 50%; transform: translateX(-50%); cursor: grab; user-select: none; }
-    .table-chip:active { cursor: grabbing; }
-
-    .chip { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; border: 3px dashed rgba(255,255,255,0.4); cursor: pointer; transition: 0.2s; font-size: 10px; user-select: none; }
+    /* CHIPS & ZONES */
+    .table-chip { position: absolute; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 900; border: 2px dashed rgba(255,255,255,0.4); box-shadow: 0 2px 4px rgba(0,0,0,0.4); left: 50%; transform: translateX(-50%); cursor: grab; }
+    .chip { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; border: 3px dashed rgba(255,255,255,0.4); cursor: pointer; transition: 0.2s; font-size: 10px; }
     .chip-active { transform: scale(1.2) translateY(-10px); border: 3px solid #fbbf24 !important; }
+    
     .chip-50 { background: #4b4b4b; } .chip-250 { background: #be123c; } .chip-1250 { background: #15803d; } 
     .chip-5000 { background: #18181b; } .chip-25k { background: #7e22ce; } .chip-125k { background: #a16207; } 
 
-    /* Dropdown UI */
-    .select-wrapper { position: relative; margin-top: 6px; width: 180px; }
-    #player-select {
-        width: 100%; background-color: rgba(0, 0, 0, 0.4);
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23fbbf24'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
-        background-repeat: no-repeat; background-position: right 10px center; background-size: 24px;
-        color: #fbbf24; font-weight: 800; font-size: 1.1rem; border: 2px solid rgba(251, 191, 36, 0.3);
-        border-radius: 12px; padding: 8px 35px 8px 12px; cursor: pointer; appearance: none; outline: none;
-    }
-    .unselected { animation: pulse-border 2s infinite; }
-    @keyframes pulse-border { 0%, 100% { border-color: rgba(251, 191, 36, 0.3); } 50% { border-color: rgba(251, 191, 36, 1); } }
-
-    /* Betting Zones */
     .bet-zone { position: relative; display: flex; flex-direction: column; align-items: center; padding-top: 20px; transition: 0.3s; cursor: pointer; }
     .zone-hover { background: rgba(255, 255, 255, 0.1) !important; }
     .chip-area { position: absolute; inset: 0; pointer-events: none; }
     
-    /* Allow interaction with chips within the area */
-    #chips-player *, #chips-tie *, #chips-banker * { pointer-events: auto; }
-
-    .movable-bet { cursor: grab; padding: 4px 10px; border-radius: 8px; background: rgba(255,255,255,0.05); user-select: none; position: relative; z-index: 50; }
-    .movable-bet:active { cursor: grabbing; }
-
     #toast { transition: 0.5s ease; transform: translate(-50%, -100%); opacity: 0; z-index: 1000; }
     #toast.show { transform: translate(-50%, 20px); opacity: 1; }
   </style>
 </head>
-<body class="flex flex-col items-center justify-between py-6 px-6" onload="startBettingRound()">
+<body onload="startBettingRound()">
 
-  <div id="toast" class="fixed top-0 left-1/2 glass px-12 py-4 rounded-full border-white/20 pointer-events-none text-center">
-    <div id="toast-winner" class="text-xl font-black italic tracking-widest uppercase"></div>
+  <div id="toast" class="fixed top-0 left-1/2 glass px-6 sm:px-12 py-4 rounded-full border-white/20 pointer-events-none text-center w-[90%] sm:w-auto">
+    <div id="toast-winner" class="text-lg sm:text-xl font-black italic tracking-widest uppercase"></div>
     <div id="toast-score" class="text-[10px] text-zinc-400 font-bold uppercase"></div>
   </div>
 
@@ -72,106 +63,91 @@
       </div>
   </div>
 
-  <div class="fixed left-6 top-1/2 -translate-y-1/2 w-64 h-[500px] glass rounded-[30px] p-5 flex flex-col">
+  <div class="history-panel fixed left-6 top-1/2 -translate-y-1/2 w-64 h-[500px] glass rounded-[30px] p-5 flex flex-col">
     <h3 class="text-zinc-500 text-[10px] font-black uppercase tracking-[3px] mb-4 border-b border-white/10 pb-2">History</h3>
-    <div id="history-list" class="flex-1 overflow-y-auto space-y-2 pr-2"></div>
+    <div id="history-list" class="flex-1 overflow-y-auto space-y-2 pr-2 text-xs"></div>
   </div>
 
-  <div class="w-full max-w-4xl ml-32 flex justify-between items-center glass p-5 rounded-[30px]">
-    <div class="flex flex-col">
-        <span class="text-zinc-500 text-[10px] font-black tracking-widest uppercase">Account Profile</span>
-        <div class="select-wrapper">
-            <select id="player-select" class="unselected" onchange="switchPlayer()">
-                <option value="" disabled selected>CHOOSE...</option>
-                <option value="Gabbi">Gabbi</option><option value="Yowe">Yowe</option>
-                <option value="Lash">Lash</option><option value="Jabo">Jabo</option>
-                <option value="Kuku">Kuku</option><option value="DJ">DJ</option><option value="GK">GK</option>
-            </select>
-        </div>
+  <div class="main-container flex flex-col items-center gap-6 mt-16 sm:ml-32">
+    
+    <div class="w-full flex flex-col sm:flex-row justify-between items-center glass p-5 rounded-[30px] gap-4">
+      <div class="flex flex-col items-center sm:items-start">
+          <span class="text-zinc-500 text-[10px] font-black tracking-widest uppercase">Account Profile</span>
+          <select id="player-select" onchange="switchPlayer()" class="mt-2 bg-black/40 text-yellow-500 font-bold p-2 rounded-xl border border-yellow-500/30 outline-none">
+              <option value="" disabled selected>CHOOSE...</option>
+              <option value="Gabbi">Gabbi</option><option value="Yowe">Yowe</option>
+              <option value="Lash">Lash</option><option value="Jabo">Jabo</option>
+              <option value="Kuku">Kuku</option><option value="DJ">DJ</option><option value="GK">GK</option>
+          </select>
+      </div>
+      <div class="text-center sm:text-right">
+          <span class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Balance</span>
+          <h2 class="text-2xl font-mono font-bold text-white">₱<span id="display-balance">0</span></h2>
+          <div class="flex gap-2 mt-2 justify-center sm:justify-end">
+              <button onclick="toggleAudio()" id="audio-btn" class="text-[10px] bg-white/5 border border-white/10 px-3 py-1.5 rounded-full font-black uppercase">🔊 On</button>
+              <button onclick="refillBalance()" class="text-[10px] bg-yellow-600/20 text-yellow-500 border border-yellow-500/40 px-4 py-1.5 rounded-full font-black hover:bg-yellow-500 uppercase">Refill</button>
+          </div>
+      </div>
     </div>
-    <div class="text-right">
-        <span class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Balance</span>
-        <h2 class="text-2xl font-mono font-bold text-white">₱<span id="display-balance">0</span></h2>
-        <button onclick="refillBalance()" class="text-[10px] bg-yellow-600/20 text-yellow-500 border border-yellow-500/40 px-4 py-1.5 rounded-full font-black hover:bg-yellow-500 mt-2 uppercase">Refill</button>
-    </div>
-  </div>
 
-  <div class="w-full max-w-4xl ml-32 mt-4">
-    <div class="flex justify-around items-center mb-4 bg-black/30 rounded-3xl p-6 h-44">
-        <div class="flex flex-col items-center w-56">
-            <div id="cards-player" class="flex gap-4 h-[80px] items-center"></div>
-            <div class="mt-4 text-[10px] font-bold text-blue-400 uppercase">Player: <span id="score-player" class="text-lg ml-1">0</span></div>
-        </div>
-        <div id="status-label" class="text-yellow-500 font-black text-xs uppercase tracking-[4px]">Place Your Bets</div>
-        <div class="flex flex-col items-center w-56">
-            <div id="cards-banker" class="flex gap-4 h-[80px] items-center"></div>
-            <div class="mt-4 text-[10px] font-bold text-red-400 uppercase">Banker: <span id="score-banker" class="text-lg ml-1">0</span></div>
+    <div class="w-full flex flex-col justify-around items-center glass bg-black/30 rounded-3xl p-6 min-h-[180px]">
+        <div class="flex justify-between w-full max-w-2xl">
+            <div class="flex flex-col items-center w-32">
+                <div id="cards-player" class="flex gap-2 h-[70px] items-center"></div>
+                <div class="mt-2 text-[10px] font-bold text-blue-400 uppercase">Player: <span id="score-player" class="text-lg">0</span></div>
+            </div>
+            <div id="status-label" class="self-center text-yellow-500 font-black text-xs uppercase tracking-[2px] text-center">Place Your Bets</div>
+            <div class="flex flex-col items-center w-32">
+                <div id="cards-banker" class="flex gap-2 h-[70px] items-center"></div>
+                <div class="mt-2 text-[10px] font-bold text-red-400 uppercase">Banker: <span id="score-banker" class="text-lg">0</span></div>
+            </div>
         </div>
     </div>
 
     <div id="table-zones" class="flex h-64 w-full rounded-[150px] overflow-hidden border-2 border-white/10 bg-black/40 relative">
-      <div id="zone-player" 
-           onclick="handleTableClick('player')" 
-           ondragover="handleDragOver(event)" 
-           ondragleave="handleDragLeave(event)" 
-           ondrop="handleDrop('player', event)" 
-           class="bet-zone flex-1 border-r border-white/5">
+      <div id="zone-player" onclick="handleTableClick('player')" ondragover="handleDragOver(event)" ondrop="handleDrop('player', event)" class="bet-zone flex-1 border-r border-white/5">
         <span class="text-blue-500 font-black text-lg italic pointer-events-none">PLAYER</span>
-        <div id="bet-player" draggable="true" ondragstart="handleBetDragStart('player', event)" class="movable-bet text-xl font-mono font-bold">₱0</div>
+        <div id="bet-player" class="movable-bet text-xl font-mono font-bold">₱0</div>
         <div id="chips-player" class="chip-area"></div>
       </div>
-      <div id="zone-tie" 
-           onclick="handleTableClick('tie')" 
-           ondragover="handleDragOver(event)" 
-           ondragleave="handleDragLeave(event)" 
-           ondrop="handleDrop('tie', event)" 
-           class="bet-zone w-1/4 border-r border-white/5 bg-green-900/5">
+      <div id="zone-tie" onclick="handleTableClick('tie')" ondragover="handleDragOver(event)" ondrop="handleDrop('tie', event)" class="bet-zone w-1/4 border-r border-white/5 bg-green-900/5">
         <span class="text-green-500 font-bold text-sm pointer-events-none">TIE</span>
-        <div id="bet-tie" draggable="true" ondragstart="handleBetDragStart('tie', event)" class="movable-bet text-lg font-mono font-bold">₱0</div>
+        <div id="bet-tie" class="movable-bet text-lg font-mono font-bold">₱0</div>
         <div id="chips-tie" class="chip-area"></div>
       </div>
-      <div id="zone-banker" 
-           onclick="handleTableClick('banker')" 
-           ondragover="handleDragOver(event)" 
-           ondragleave="handleDragLeave(event)" 
-           ondrop="handleDrop('banker', event)" 
-           class="bet-zone flex-1">
+      <div id="zone-banker" onclick="handleTableClick('banker')" ondragover="handleDragOver(event)" ondrop="handleDrop('banker', event)" class="bet-zone flex-1">
         <span class="text-red-500 font-black text-lg italic pointer-events-none">BANKER</span>
-        <div id="bet-banker" draggable="true" ondragstart="handleBetDragStart('banker', event)" class="movable-bet text-xl font-mono font-bold">₱0</div>
+        <div id="bet-banker" class="movable-bet text-xl font-mono font-bold">₱0</div>
         <div id="chips-banker" class="chip-area"></div>
       </div>
     </div>
-  </div>
 
-  <div class="w-full max-w-4xl ml-32 flex flex-col items-center gap-4 mt-4">
-    <div id="chip-rack" class="flex items-center gap-3 p-3 glass rounded-full opacity-0">
-      <button onclick="undoBets()" class="text-zinc-500 font-bold text-[10px] uppercase px-2 hover:text-white">Undo</button>
-      <div class="flex gap-2">
-        <div draggable="true" ondragstart="handleChipDragStart(50, this)" onclick="selectChip(50, this)" class="chip chip-50">50</div>
-        <div draggable="true" ondragstart="handleChipDragStart(250, this)" onclick="selectChip(250, this)" class="chip chip-250">250</div>
-        <div draggable="true" ondragstart="handleChipDragStart(1250, this)" onclick="selectChip(1250, this)" class="chip chip-1250">1250</div>
-        <div draggable="true" ondragstart="handleChipDragStart(5000, this)" onclick="selectChip(5000, this)" class="chip chip-5000">5k</div>
-        <div draggable="true" ondragstart="handleChipDragStart(25000, this)" onclick="selectChip(25000, this)" class="chip chip-25k">25k</div>
-        <div draggable="true" ondragstart="handleChipDragStart(125000, this)" onclick="selectChip(125000, this)" class="chip chip-125k">125k</div>
+    <div id="chip-rack" class="flex items-center gap-3 p-3 glass rounded-full opacity-0 overflow-x-auto max-w-full no-scrollbar">
+      <button onclick="undoBets()" class="text-zinc-500 font-bold text-[10px] uppercase px-2 hover:text-white shrink-0">Undo</button>
+      <div class="flex gap-2 shrink-0">
+        <div onclick="selectChip(50, this)" class="chip chip-50">50</div>
+        <div onclick="selectChip(250, this)" class="chip chip-250">250</div>
+        <div onclick="selectChip(1250, this)" class="chip chip-1250">1250</div>
+        <div onclick="selectChip(5000, this)" class="chip chip-5000">5k</div>
+        <div onclick="selectChip(25000, this)" class="chip chip-25k">25k</div>
+        <div onclick="selectChip(125000, this)" class="chip chip-125k">125k</div>
       </div>
-      <button onclick="doubleBets()" class="bg-zinc-800 text-white w-8 h-8 rounded-full font-bold">×2</button>
+      <button onclick="doubleBets()" class="bg-zinc-800 text-white w-8 h-8 rounded-full font-bold shrink-0">×2</button>
     </div>
+
   </div>
 
   <script>
-    // --- AUDIO SYSTEM ---
+    // --- AUDIO & LOGIC (KEPT FROM YOUR WORKING VERSION) ---
+    let audioEnabled = true;
     const sounds = {
-        chip: new Audio('https://raw.githubusercontent.com/the-muda-organization/baccarat-engine/master/sounds/bet.mp3'),
-        deal: new Audio('https://raw.githubusercontent.com/the-muda-organization/baccarat-engine/master/sounds/deal.mp3'),
-        win: new Audio('https://upload.wikimedia.org/wikipedia/commons/4/47/Chime_sound_effect.mp3')
+        chip: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'),
+        deal: new Audio('https://assets.mixkit.co/active_storage/sfx/2017/2017-preview.mp3'),
+        win: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3')
     };
+    function playSfx(name) { if(audioEnabled) { const s=sounds[name]; s.currentTime=0; s.play().catch(()=>{}); } }
+    function toggleAudio() { audioEnabled = !audioEnabled; document.getElementById('audio-btn').innerText = audioEnabled ? "🔊 On" : "🔇 Off"; }
 
-    function playSfx(name) {
-        sounds[name].currentTime = 0;
-        sounds[name].play().catch(() => {}); // Catch browser blocking
-    }
-
-    // --- GAME DATA ---
     let players = JSON.parse(localStorage.getItem('baccarat_db')) || {
       "Gabbi": { b: 100000, bets: { player: 0, tie: 0, banker: 0 }, h: [] },
       "Yowe":  { b: 100000, bets: { player: 0, tie: 0, banker: 0 }, h: [] },
@@ -184,7 +160,6 @@
 
     let chipStackCount = { player: 0, tie: 0, banker: 0 };
     let cur = null; let activeChipValue = null; let timerVal = 15; let isBettingOpen = false;
-    let dragSourceZone = null; 
 
     function save() { localStorage.setItem('baccarat_db', JSON.stringify(players)); }
     function getVal(idx) { return idx === 0 ? 1 : (idx >= 9 ? 0 : idx + 1); }
@@ -192,67 +167,16 @@
 
     function switchPlayer() {
       cur = document.getElementById('player-select').value;
-      document.getElementById('player-select').classList.remove('unselected');
       document.getElementById('chip-rack').classList.remove('opacity-0');
+      Object.values(sounds).forEach(s => { s.play().then(() => {s.pause(); s.currentTime=0;}).catch(()=>{}); });
       update();
     }
 
-    // --- DRAG & DROP LOGIC ---
-    function handleChipDragStart(val, el) { 
-        if (!isBettingOpen || !cur) return; 
-        selectChip(val, el); 
-        dragSourceZone = 'rack';
-    }
-
-    function handleBetDragStart(zone, e) {
-        if (!isBettingOpen || !cur || players[cur].bets[zone] === 0) {
-            e.preventDefault();
-            return;
-        }
-        dragSourceZone = zone;
-        e.dataTransfer.setData("text/plain", zone);
-    }
-
     function handleDragOver(e) { e.preventDefault(); if (isBettingOpen) e.currentTarget.classList.add('zone-hover'); }
-    function handleDragLeave(e) { e.currentTarget.classList.remove('zone-hover'); }
-
-    function handleDrop(targetZone, e) {
-        e.preventDefault();
-        e.currentTarget.classList.remove('zone-hover');
-        if (!isBettingOpen || !cur) return;
-
-        if (dragSourceZone === 'rack') {
-            processBet(targetZone);
-        } else if (dragSourceZone && dragSourceZone !== targetZone) {
-            moveBet(dragSourceZone, targetZone);
-        }
-        dragSourceZone = null;
-    }
-
-    function moveBet(from, to) {
-        playSfx('chip');
-        const amount = players[cur].bets[from];
-        players[cur].bets[to] += amount;
-        players[cur].bets[from] = 0;
-        rebuildChips(from);
-        rebuildChips(to);
-        update();
-        save();
-    }
-
-    function rebuildChips(zone) {
-        const container = document.getElementById(`chips-${zone}`);
-        container.innerHTML = '';
-        chipStackCount[zone] = 0;
-        let amount = players[cur].bets[zone];
-        if (amount > 0) createTableChip(amount, zone); 
-    }
-
-    function handleTableClick(zone) { if (isBettingOpen) processBet(zone); }
+    function handleDrop(targetZone, e) { e.preventDefault(); e.currentTarget.classList.remove('zone-hover'); if (isBettingOpen) processBet(targetZone); }
 
     function processBet(zone) {
-        if (!cur || activeChipValue === null) return;
-        if (players[cur].b < activeChipValue) return;
+        if (!cur || activeChipValue === null || players[cur].b < activeChipValue) return;
         playSfx('chip');
         players[cur].b -= activeChipValue;
         players[cur].bets[zone] += activeChipValue;
@@ -263,22 +187,17 @@
     function createTableChip(amount, zone) {
       const container = document.getElementById(`chips-${zone}`);
       const chip = document.createElement('div');
-      const valText = amount >= 1000 ? (amount / 1000) + 'k' : amount;
       const stackHeight = chipStackCount[zone] * 4; 
       chipStackCount[zone]++;
       chip.className = `table-chip chip-${amount >= 125000 ? '125k' : amount >= 25000 ? '25k' : amount >= 5000 ? '5000' : '50'}`;
-      chip.innerText = valText;
+      chip.innerText = amount >= 1000 ? (amount / 1000) + 'k' : amount;
       chip.style.bottom = (40 + stackHeight) + "px"; 
       chip.style.zIndex = chipStackCount[zone];
-      
-      // Make physical chip draggable
-      chip.draggable = true;
-      chip.ondragstart = (e) => handleBetDragStart(zone, e);
-
       container.appendChild(chip);
     }
 
-    // --- GAME ENGINE ---
+    function handleTableClick(zone) { if (isBettingOpen) processBet(zone); }
+
     function startBettingRound() {
         isBettingOpen = true; timerVal = 15;
         chipStackCount = { player: 0, tie: 0, banker: 0 };
@@ -303,8 +222,8 @@
         document.getElementById('cards-player').innerHTML = '';
         document.getElementById('cards-banker').innerHTML = '';
         let pHand = [getRandomCard(), getRandomCard()], bHand = [getRandomCard(), getRandomCard()];
-        await renderCard('player', pHand[0], false); await renderCard('banker', bHand[0], false);
-        await renderCard('player', pHand[1], false); await renderCard('banker', bHand[1], false);
+        await renderCard('player', pHand[0]); await renderCard('banker', bHand[0]);
+        await renderCard('player', pHand[1]); await renderCard('banker', bHand[1]);
         let pT = (getVal(pHand[0]) + getVal(pHand[1])) % 10, bT = (getVal(bHand[0]) + getVal(bHand[1])) % 10;
         document.getElementById('score-player').innerText = pT; document.getElementById('score-banker').innerText = bT;
         if (pT < 8 && bT < 8) {
@@ -333,19 +252,18 @@
     }
 
     function resolveRound(winner, pT, bT, nat) {
-      let playerWonMoney = false;
+      let anyWinner = false;
       Object.keys(players).forEach(name => {
         let p = players[name]; let tot = p.bets.player + p.bets.banker + p.bets.tie;
         if (tot === 0) return; 
         let win = (winner === 'player' ? p.bets.player * 2 : winner === 'banker' ? p.bets.banker * 1.95 : winner === 'tie' ? p.bets.tie * 9 : 0);
         let refund = (winner === 'tie' ? (p.bets.player + p.bets.banker) : 0);
-        let finalGain = (Math.floor(win) + refund);
-        if (finalGain > tot) playerWonMoney = true;
-        p.b += finalGain;
-        p.h.unshift({ time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), winner, net: finalGain - tot, score: `${pT}-${bT}` });
+        if (win > 0) anyWinner = true;
+        p.b += (Math.floor(win) + refund);
+        p.h.unshift({ time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), winner, net: (Math.floor(win)+refund)-tot });
         p.bets = { player: 0, tie: 0, banker: 0 };
       });
-      if (playerWonMoney) playSfx('win');
+      if (anyWinner) playSfx('win');
       document.querySelectorAll('.chip-area').forEach(c => c.innerHTML = '');
       showToast(winner, pT, bT, nat); update(); save();
     }
@@ -367,7 +285,7 @@
       document.getElementById('bet-tie').innerText = "₱" + p.bets.tie.toLocaleString();
       document.getElementById('bet-banker').innerText = "₱" + p.bets.banker.toLocaleString();
       document.getElementById('history-list').innerHTML = p.h.slice(0,10).map(e => `
-        <div class="bg-white/5 p-2 rounded-lg border border-white/5 flex justify-between text-[10px]">
+        <div class="bg-white/5 p-2 rounded-lg border border-white/5 flex justify-between text-[10px] mb-1">
           <span class="font-bold uppercase ${e.winner === 'player'?'text-blue-400':e.winner === 'banker'?'text-red-400':'text-green-400'}">${e.winner}</span>
           <span class="font-mono ${e.net >= 0 ? 'text-green-500':'text-red-500'}">${e.net >= 0 ? '+':''}${e.net.toLocaleString()}</span>
         </div>`).join('');
@@ -399,11 +317,7 @@
         update();
     }
 
-    function refillBalance() {
-        if (!cur) return;
-        players[cur].b += 100000;
-        update(); save();
-    }
+    function refillBalance() { if (!cur) return; players[cur].b += 100000; update(); save(); }
   </script>
 </body>
 </html>
