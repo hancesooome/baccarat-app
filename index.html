@@ -3,61 +3,73 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Armel Baccarat - Premium Responsive</title>
+  <title>Armel Baccarat</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* PRESERVE ORIGINAL STYLING */
-    body { background: radial-gradient(circle at center, #1a1c2c 0%, #08080a 100%); min-height: 100vh; color: white; overflow-x: hidden; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
+    body { 
+        background: radial-gradient(circle at center, #1a1c2c 0%, #08080a 100%); 
+        min-height: 100vh; color: white; overflow-x: hidden; font-family: sans-serif; 
+        display: flex; flex-direction: column; align-items: center;
+    }
     .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-    #timer-bar { height: 4px; background: #fbbf24; width: 100%; transition: width 1s linear; }
-    .betting-closed { opacity: 0.5; pointer-events: none !important; filter: grayscale(0.5); }
     
-    /* CARDS */
-    .card { width: 45px; height: 68px; background: white; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: black; font-weight: bold; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.5); animation: deal 0.4s ease-out forwards; }
+    /* Progress Bar */
+    #timer-bar { height: 4px; background: #fbbf24; width: 100%; transition: width 1s linear; }
+
+    /* Scaling for Mobile Devices */
+    .game-wrapper { width: 100%; max-width: 1100px; padding: 20px; transition: 0.3s; }
+    @media (max-width: 1024px) {
+        .game-wrapper { transform: scale(0.85); transform-origin: top center; margin-top: 40px; }
+        .history-panel { display: none; } /* Hide fixed history on mobile */
+    }
+    @media (max-width: 640px) {
+        .game-wrapper { transform: scale(0.7); margin-top: 20px; }
+        .ml-32 { margin-left: 0 !important; }
+    }
+
+    /* Cards Fix */
+    .card { width: 45px; height: 68px; background: white; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: black; font-weight: bold; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.5); animation: deal 0.4s ease-out forwards; flex-shrink: 0; }
     .card.red { color: #ef4444; }
     .card-third { transform: rotate(90deg) !important; border: 1px solid #fbbf24; }
     @keyframes deal { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-    /* TABLE SCALING LOGIC */
-    .main-container { width: 100%; max-width: 1024px; padding: 20px; transition: 0.3s; }
-    
-    /* On small screens, we scale the table container down rather than breaking the layout */
-    @media (max-width: 900px) {
-        .main-container { transform: scale(0.9); transform-origin: top center; padding: 10px; }
-        .history-panel { display: none; } /* Hide fixed history on very small screens to save space */
-    }
-    @media (max-width: 640px) {
-        .main-container { transform: scale(0.75); }
-        .ml-32 { margin-left: 0 !important; } /* Remove the history offset on mobile */
-    }
+    /* Player 3rd card flows LEFT, Banker 3rd card flows RIGHT */
+    #cards-player { flex-direction: row-reverse; } 
+    #cards-banker { flex-direction: row; }
 
-    /* CHIPS & ZONES */
-    .table-chip { position: absolute; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 900; border: 2px dashed rgba(255,255,255,0.4); box-shadow: 0 2px 4px rgba(0,0,0,0.4); left: 50%; transform: translateX(-50%); cursor: grab; }
-    .chip { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; border: 3px dashed rgba(255,255,255,0.4); cursor: pointer; transition: 0.2s; font-size: 10px; }
-    .chip-active { transform: scale(1.2) translateY(-10px); border: 3px solid #fbbf24 !important; }
+    /* Betting Zones */
+    .bet-zone { position: relative; display: flex; flex-direction: column; align-items: center; padding-top: 20px; transition: 0.3s; cursor: pointer; }
+    .zone-hover { background: rgba(255, 255, 255, 0.1) !important; }
+    .betting-closed { opacity: 0.5; pointer-events: none !important; filter: grayscale(0.5); }
+
+    /* Chips Fix - No Clipping */
+    #chip-rack { 
+        padding: 25px 30px 15px 30px; /* Extra top padding for the jump */
+        overflow: visible !important; 
+    }
+    .chip { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; border: 3px dashed rgba(255,255,255,0.4); cursor: pointer; transition: 0.2s; font-size: 10px; user-select: none; }
+    .chip-active { transform: scale(1.2) translateY(-15px); border: 3px solid #fbbf24 !important; box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
+    
+    .table-chip { position: absolute; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 900; border: 2px dashed rgba(255,255,255,0.4); left: 50%; transform: translateX(-50%); pointer-events: none; }
     
     .chip-50 { background: #4b4b4b; } .chip-250 { background: #be123c; } .chip-1250 { background: #15803d; } 
     .chip-5000 { background: #18181b; } .chip-25k { background: #7e22ce; } .chip-125k { background: #a16207; } 
 
-    .bet-zone { position: relative; display: flex; flex-direction: column; align-items: center; padding-top: 20px; transition: 0.3s; cursor: pointer; }
-    .zone-hover { background: rgba(255, 255, 255, 0.1) !important; }
-    .chip-area { position: absolute; inset: 0; pointer-events: none; }
-    
-    #toast { transition: 0.5s ease; transform: translate(-50%, -100%); opacity: 0; z-index: 1000; }
+    #toast { transition: 0.5s ease; transform: translate(-50%, -100%); opacity: 0; z-index: 1000; left: 50%; }
     #toast.show { transform: translate(-50%, 20px); opacity: 1; }
   </style>
 </head>
-<body onload="startBettingRound()">
+<body>
 
-  <div id="toast" class="fixed top-0 left-1/2 glass px-6 sm:px-12 py-4 rounded-full border-white/20 pointer-events-none text-center w-[90%] sm:w-auto">
-    <div id="toast-winner" class="text-lg sm:text-xl font-black italic tracking-widest uppercase"></div>
+  <div id="toast" class="fixed top-0 glass px-12 py-4 rounded-full border-white/20 text-center w-[90%] max-w-md">
+    <div id="toast-winner" class="text-xl font-black italic uppercase tracking-widest"></div>
     <div id="toast-score" class="text-[10px] text-zinc-400 font-bold uppercase"></div>
   </div>
 
   <div class="fixed top-0 left-0 w-full z-50">
       <div id="timer-bar"></div>
       <div class="flex justify-center">
-          <div class="glass px-6 py-1 rounded-b-xl border-t-0 text-[10px] font-black tracking-[3px] uppercase">
+          <div class="glass px-6 py-1 rounded-b-xl border-t-0 text-[10px] font-black uppercase">
             Time: <span id="timer-text" class="text-yellow-500 text-lg ml-2">15</span>s
           </div>
       </div>
@@ -68,86 +80,84 @@
     <div id="history-list" class="flex-1 overflow-y-auto space-y-2 pr-2 text-xs"></div>
   </div>
 
-  <div class="main-container flex flex-col items-center gap-6 mt-16 sm:ml-32">
+  <div class="game-wrapper mt-16 sm:ml-32 flex flex-col gap-6">
     
-    <div class="w-full flex flex-col sm:flex-row justify-between items-center glass p-5 rounded-[30px] gap-4">
-      <div class="flex flex-col items-center sm:items-start">
-          <span class="text-zinc-500 text-[10px] font-black tracking-widest uppercase">Account Profile</span>
-          <select id="player-select" onchange="switchPlayer()" class="mt-2 bg-black/40 text-yellow-500 font-bold p-2 rounded-xl border border-yellow-500/30 outline-none">
-              <option value="" disabled selected>CHOOSE...</option>
-              <option value="Gabbi">Gabbi</option><option value="Yowe">Yowe</option>
-              <option value="Lash">Lash</option><option value="Jabo">Jabo</option>
-              <option value="Kuku">Kuku</option><option value="DJ">DJ</option><option value="GK">GK</option>
-          </select>
-      </div>
-      <div class="text-center sm:text-right">
-          <span class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Balance</span>
-          <h2 class="text-2xl font-mono font-bold text-white">₱<span id="display-balance">0</span></h2>
-          <div class="flex gap-2 mt-2 justify-center sm:justify-end">
-              <button onclick="toggleAudio()" id="audio-btn" class="text-[10px] bg-white/5 border border-white/10 px-3 py-1.5 rounded-full font-black uppercase">🔊 On</button>
-              <button onclick="refillBalance()" class="text-[10px] bg-yellow-600/20 text-yellow-500 border border-yellow-500/40 px-4 py-1.5 rounded-full font-black hover:bg-yellow-500 uppercase">Refill</button>
-          </div>
-      </div>
+    <div class="w-full flex justify-between items-center glass p-5 rounded-[30px]">
+        <div>
+            <span class="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Profile</span>
+            <select id="player-select" onchange="switchPlayer()" class="block mt-1 bg-black/40 text-yellow-500 font-bold p-2 rounded-xl border border-yellow-500/30 outline-none">
+                <option value="" disabled selected>CHOOSE...</option>
+                <option value="Gabbi">Gabbi</option><option value="Yowe">Yowe</option>
+                <option value="Lash">Lash</option><option value="Jabo">Jabo</option>
+                <option value="Kuku">Kuku</option><option value="DJ">DJ</option><option value="GK">GK</option>
+            </select>
+        </div>
+        <div class="text-right">
+            <span class="text-zinc-500 text-[10px] font-bold uppercase">Balance</span>
+            <div class="text-2xl font-mono font-bold">₱<span id="display-balance">0</span></div>
+            <button onclick="refillBalance()" class="text-[9px] text-yellow-500 underline uppercase mt-1">Refill</button>
+        </div>
     </div>
 
-    <div class="w-full flex flex-col justify-around items-center glass bg-black/30 rounded-3xl p-6 min-h-[180px]">
-        <div class="flex justify-between w-full max-w-2xl">
-            <div class="flex flex-col items-center w-32">
-                <div id="cards-player" class="flex gap-2 h-[70px] items-center"></div>
-                <div class="mt-2 text-[10px] font-bold text-blue-400 uppercase">Player: <span id="score-player" class="text-lg">0</span></div>
-            </div>
-            <div id="status-label" class="self-center text-yellow-500 font-black text-xs uppercase tracking-[2px] text-center">Place Your Bets</div>
-            <div class="flex flex-col items-center w-32">
-                <div id="cards-banker" class="flex gap-2 h-[70px] items-center"></div>
-                <div class="mt-2 text-[10px] font-bold text-red-400 uppercase">Banker: <span id="score-banker" class="text-lg">0</span></div>
-            </div>
+    <div class="flex justify-around items-center bg-black/30 rounded-3xl p-6 h-44 border border-white/5">
+        <div class="flex flex-col items-center w-64">
+            <div id="cards-player" class="flex gap-4 h-[80px] w-full"></div>
+            <div class="mt-4 text-[10px] font-bold text-blue-400 uppercase">Player: <span id="score-player" class="text-lg">0</span></div>
+        </div>
+        <div id="status-label" class="text-yellow-500 font-black text-xs uppercase tracking-[4px] text-center">Place Bets</div>
+        <div class="flex flex-col items-center w-64">
+            <div id="cards-banker" class="flex gap-4 h-[80px] w-full"></div>
+            <div class="mt-4 text-[10px] font-bold text-red-400 uppercase">Banker: <span id="score-banker" class="text-lg">0</span></div>
         </div>
     </div>
 
     <div id="table-zones" class="flex h-64 w-full rounded-[150px] overflow-hidden border-2 border-white/10 bg-black/40 relative">
-      <div id="zone-player" onclick="handleTableClick('player')" ondragover="handleDragOver(event)" ondrop="handleDrop('player', event)" class="bet-zone flex-1 border-r border-white/5">
-        <span class="text-blue-500 font-black text-lg italic pointer-events-none">PLAYER</span>
-        <div id="bet-player" class="movable-bet text-xl font-mono font-bold">₱0</div>
-        <div id="chips-player" class="chip-area"></div>
+      <div onclick="handleTableClick('player')" ondragover="allowDrop(event)" ondrop="handleDrop('player', event)" class="bet-zone flex-1 border-r border-white/5">
+        <span class="text-blue-500 font-black text-lg italic">PLAYER</span>
+        <div id="bet-player" class="text-xl font-mono font-bold">₱0</div>
+        <div id="chips-player" class="chip-area absolute inset-0 pointer-events-none"></div>
       </div>
-      <div id="zone-tie" onclick="handleTableClick('tie')" ondragover="handleDragOver(event)" ondrop="handleDrop('tie', event)" class="bet-zone w-1/4 border-r border-white/5 bg-green-900/5">
-        <span class="text-green-500 font-bold text-sm pointer-events-none">TIE</span>
-        <div id="bet-tie" class="movable-bet text-lg font-mono font-bold">₱0</div>
-        <div id="chips-tie" class="chip-area"></div>
+      <div onclick="handleTableClick('tie')" ondragover="allowDrop(event)" ondrop="handleDrop('tie', event)" class="bet-zone w-1/4 border-r border-white/5 bg-green-900/5">
+        <span class="text-green-500 font-bold text-sm">TIE</span>
+        <div id="bet-tie" class="text-lg font-mono font-bold">₱0</div>
+        <div id="chips-tie" class="chip-area absolute inset-0 pointer-events-none"></div>
       </div>
-      <div id="zone-banker" onclick="handleTableClick('banker')" ondragover="handleDragOver(event)" ondrop="handleDrop('banker', event)" class="bet-zone flex-1">
-        <span class="text-red-500 font-black text-lg italic pointer-events-none">BANKER</span>
-        <div id="bet-banker" class="movable-bet text-xl font-mono font-bold">₱0</div>
-        <div id="chips-banker" class="chip-area"></div>
+      <div onclick="handleTableClick('banker')" ondragover="allowDrop(event)" ondrop="handleDrop('banker', event)" class="bet-zone flex-1">
+        <span class="text-red-500 font-black text-lg italic">BANKER</span>
+        <div id="bet-banker" class="text-xl font-mono font-bold">₱0</div>
+        <div id="chips-banker" class="chip-area absolute inset-0 pointer-events-none"></div>
       </div>
     </div>
 
-    <div id="chip-rack" class="flex items-center gap-3 p-3 glass rounded-full opacity-0 overflow-x-auto max-w-full no-scrollbar">
-      <button onclick="undoBets()" class="text-zinc-500 font-bold text-[10px] uppercase px-2 hover:text-white shrink-0">Undo</button>
-      <div class="flex gap-2 shrink-0">
-        <div onclick="selectChip(50, this)" class="chip chip-50">50</div>
-        <div onclick="selectChip(250, this)" class="chip chip-250">250</div>
-        <div onclick="selectChip(1250, this)" class="chip chip-1250">1250</div>
-        <div onclick="selectChip(5000, this)" class="chip chip-5000">5k</div>
-        <div onclick="selectChip(25000, this)" class="chip chip-25k">25k</div>
-        <div onclick="selectChip(125000, this)" class="chip chip-125k">125k</div>
-      </div>
-      <button onclick="doubleBets()" class="bg-zinc-800 text-white w-8 h-8 rounded-full font-bold shrink-0">×2</button>
+    <div class="flex flex-col items-center gap-4">
+        <div id="chip-rack" class="flex items-center gap-4 glass rounded-full opacity-0">
+          <button onclick="undoBets()" class="text-zinc-500 font-bold text-[10px] uppercase px-4 hover:text-white">Undo</button>
+          <div class="flex gap-3">
+            <div draggable="true" ondragstart="startDrag(50, this)" onclick="selectChip(50, this)" class="chip chip-50">50</div>
+            <div draggable="true" ondragstart="startDrag(250, this)" onclick="selectChip(250, this)" class="chip chip-250">250</div>
+            <div draggable="true" ondragstart="startDrag(1250, this)" onclick="selectChip(1250, this)" class="chip chip-1250">1250</div>
+            <div draggable="true" ondragstart="startDrag(5000, this)" onclick="selectChip(5000, this)" class="chip chip-5000">5k</div>
+            <div draggable="true" ondragstart="startDrag(25000, this)" onclick="selectChip(25000, this)" class="chip chip-25k">25k</div>
+            <div draggable="true" ondragstart="startDrag(125000, this)" onclick="selectChip(125000, this)" class="chip chip-125k">125k</div>
+          </div>
+          <button onclick="doubleBets()" class="bg-zinc-800 text-white w-10 h-10 rounded-full font-bold ml-2">×2</button>
+        </div>
+        <button onclick="toggleAudio()" id="audio-btn" class="text-[10px] glass px-4 py-2 rounded-full uppercase font-black">🔊 Sound On</button>
     </div>
-
   </div>
 
   <script>
-    // --- AUDIO & LOGIC (KEPT FROM YOUR WORKING VERSION) ---
+    // --- AUDIO ---
     let audioEnabled = true;
     const sounds = {
         chip: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'),
         deal: new Audio('https://assets.mixkit.co/active_storage/sfx/2017/2017-preview.mp3'),
         win: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3')
     };
-    function playSfx(name) { if(audioEnabled) { const s=sounds[name]; s.currentTime=0; s.play().catch(()=>{}); } }
-    function toggleAudio() { audioEnabled = !audioEnabled; document.getElementById('audio-btn').innerText = audioEnabled ? "🔊 On" : "🔇 Off"; }
+    function playSfx(name) { if(audioEnabled) { sounds[name].currentTime=0; sounds[name].play().catch(()=>{}); } }
+    function toggleAudio() { audioEnabled = !audioEnabled; document.getElementById('audio-btn').innerText = audioEnabled ? "🔊 Sound On" : "🔇 Sound Off"; }
 
+    // --- STATE ---
     let players = JSON.parse(localStorage.getItem('baccarat_db')) || {
       "Gabbi": { b: 100000, bets: { player: 0, tie: 0, banker: 0 }, h: [] },
       "Yowe":  { b: 100000, bets: { player: 0, tie: 0, banker: 0 }, h: [] },
@@ -159,24 +169,31 @@
     };
 
     let chipStackCount = { player: 0, tie: 0, banker: 0 };
-    let cur = null; let activeChipValue = null; let timerVal = 15; let isBettingOpen = false;
+    let cur = null, activeChipValue = null, timerVal = 15, isBettingOpen = false;
 
     function save() { localStorage.setItem('baccarat_db', JSON.stringify(players)); }
     function getVal(idx) { return idx === 0 ? 1 : (idx >= 9 ? 0 : idx + 1); }
-    function getRandomCard() { return Math.floor(Math.random() * 13); }
 
     function switchPlayer() {
       cur = document.getElementById('player-select').value;
       document.getElementById('chip-rack').classList.remove('opacity-0');
-      Object.values(sounds).forEach(s => { s.play().then(() => {s.pause(); s.currentTime=0;}).catch(()=>{}); });
       update();
     }
 
-    function handleDragOver(e) { e.preventDefault(); if (isBettingOpen) e.currentTarget.classList.add('zone-hover'); }
-    function handleDrop(targetZone, e) { e.preventDefault(); e.currentTarget.classList.remove('zone-hover'); if (isBettingOpen) processBet(targetZone); }
+    // --- BETTING ---
+    function selectChip(val, el) {
+      activeChipValue = val;
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('chip-active'));
+      el.classList.add('chip-active');
+    }
+
+    function startDrag(val, el) { if(!isBettingOpen) return; selectChip(val, el); }
+    function allowDrop(e) { e.preventDefault(); }
+    function handleDrop(zone, e) { e.preventDefault(); if(isBettingOpen) processBet(zone); }
+    function handleTableClick(zone) { if(isBettingOpen) processBet(zone); }
 
     function processBet(zone) {
-        if (!cur || activeChipValue === null || players[cur].b < activeChipValue) return;
+        if (!cur || !activeChipValue || players[cur].b < activeChipValue) return;
         playSfx('chip');
         players[cur].b -= activeChipValue;
         players[cur].bets[zone] += activeChipValue;
@@ -187,16 +204,12 @@
     function createTableChip(amount, zone) {
       const container = document.getElementById(`chips-${zone}`);
       const chip = document.createElement('div');
-      const stackHeight = chipStackCount[zone] * 4; 
-      chipStackCount[zone]++;
+      const stack = chipStackCount[zone] * 4; chipStackCount[zone]++;
       chip.className = `table-chip chip-${amount >= 125000 ? '125k' : amount >= 25000 ? '25k' : amount >= 5000 ? '5000' : '50'}`;
-      chip.innerText = amount >= 1000 ? (amount / 1000) + 'k' : amount;
-      chip.style.bottom = (40 + stackHeight) + "px"; 
-      chip.style.zIndex = chipStackCount[zone];
+      chip.innerText = amount >= 1000 ? (amount/1000)+'k' : amount;
+      chip.style.bottom = (40 + stack) + "px";
       container.appendChild(chip);
     }
-
-    function handleTableClick(zone) { if (isBettingOpen) processBet(zone); }
 
     function startBettingRound() {
         isBettingOpen = true; timerVal = 15;
@@ -221,85 +234,90 @@
     async function dealGame() {
         document.getElementById('cards-player').innerHTML = '';
         document.getElementById('cards-banker').innerHTML = '';
-        let pHand = [getRandomCard(), getRandomCard()], bHand = [getRandomCard(), getRandomCard()];
+        let pHand = [Math.floor(Math.random()*13), Math.floor(Math.random()*13)];
+        let bHand = [Math.floor(Math.random()*13), Math.floor(Math.random()*13)];
+        
         await renderCard('player', pHand[0]); await renderCard('banker', bHand[0]);
         await renderCard('player', pHand[1]); await renderCard('banker', bHand[1]);
-        let pT = (getVal(pHand[0]) + getVal(pHand[1])) % 10, bT = (getVal(bHand[0]) + getVal(bHand[1])) % 10;
-        document.getElementById('score-player').innerText = pT; document.getElementById('score-banker').innerText = bT;
+        
+        let pT = (getVal(pHand[0]) + getVal(pHand[1])) % 10;
+        let bT = (getVal(bHand[0]) + getVal(bHand[1])) % 10;
+        document.getElementById('score-player').innerText = pT;
+        document.getElementById('score-banker').innerText = bT;
+
         if (pT < 8 && bT < 8) {
             let p3v = -1;
-            if (pT <= 5) { let p3 = getRandomCard(); pHand.push(p3); p3v = getVal(p3); await renderCard('player', p3, true); pT = (pT + p3v) % 10; document.getElementById('score-player').innerText = pT; }
+            if (pT <= 5) { 
+                let p3 = Math.floor(Math.random()*13); pHand.push(p3); p3v = getVal(p3);
+                await renderCard('player', p3, true); pT = (pT + p3v) % 10;
+                document.getElementById('score-player').innerText = pT;
+            }
             let bHits = (p3v === -1) ? (bT <= 5) : (bT <= 2 || (bT==3 && p3v!=8) || (bT==4 && [2,3,4,5,6,7].includes(p3v)) || (bT==5 && [4,5,6,7].includes(p3v)) || (bT==6 && [6,7].includes(p3v)));
-            if (bHits) { let b3 = getRandomCard(); bHand.push(b3); await renderCard('banker', b3, true); bT = (bT + getVal(b3)) % 10; document.getElementById('score-banker').innerText = bT; }
+            if (bHits) {
+                let b3 = Math.floor(Math.random()*13); bHand.push(b3);
+                await renderCard('banker', b3, true); bT = (bT + getVal(b3)) % 10;
+                document.getElementById('score-banker').innerText = bT;
+            }
         }
         let winner = pT > bT ? 'player' : bT > pT ? 'banker' : 'tie';
-        setTimeout(() => { resolveRound(winner, pT, bT, (pT>=8||bT>=8)); setTimeout(startBettingRound, 5000); }, 800);
+        setTimeout(() => { resolveRound(winner, pT, bT); setTimeout(startBettingRound, 4000); }, 800);
     }
 
-    async function renderCard(side, idx, isThird) {
-        return new Promise(res => {
+    async function renderCard(side, idx, is3rd) {
+        return new Promise(r => {
             setTimeout(() => {
                 playSfx('deal');
                 const suit = ['♠','♥','♣','♦'][Math.floor(Math.random()*4)];
                 const val = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'][idx];
                 const el = document.createElement('div');
-                el.className = `card ${(suit === '♥' || suit === '♦') ? 'red' : ''} ${isThird ? 'card-third' : ''}`;
+                el.className = `card ${(suit==='♥'||suit==='♦')?'red':''} ${is3rd?'card-third':''}`;
                 el.innerHTML = `<span>${val}</span><span class="text-[9px]">${suit}</span>`;
                 document.getElementById(`cards-${side}`).appendChild(el);
-                res();
+                r();
             }, 400);
         });
     }
 
-    function resolveRound(winner, pT, bT, nat) {
-      let anyWinner = false;
+    function resolveRound(winner, pT, bT) {
       Object.keys(players).forEach(name => {
         let p = players[name]; let tot = p.bets.player + p.bets.banker + p.bets.tie;
-        if (tot === 0) return; 
-        let win = (winner === 'player' ? p.bets.player * 2 : winner === 'banker' ? p.bets.banker * 1.95 : winner === 'tie' ? p.bets.tie * 9 : 0);
-        let refund = (winner === 'tie' ? (p.bets.player + p.bets.banker) : 0);
-        if (win > 0) anyWinner = true;
+        if (tot === 0) return;
+        let win = (winner==='player'?p.bets.player*2 : winner==='banker'?p.bets.banker*1.95 : winner==='tie'?p.bets.tie*9 : 0);
+        let refund = (winner==='tie'?(p.bets.player+p.bets.banker):0);
         p.b += (Math.floor(win) + refund);
-        p.h.unshift({ time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), winner, net: (Math.floor(win)+refund)-tot });
+        p.h.unshift({ winner, net: (Math.floor(win)+refund)-tot });
         p.bets = { player: 0, tie: 0, banker: 0 };
       });
-      if (anyWinner) playSfx('win');
+      playSfx('win');
       document.querySelectorAll('.chip-area').forEach(c => c.innerHTML = '');
-      showToast(winner, pT, bT, nat); update(); save();
+      showToast(winner, pT, bT); update(); save();
     }
 
-    function showToast(winner, p, b, nat) {
+    function showToast(w, p, b) {
       const t = document.getElementById('toast');
-      document.getElementById('toast-winner').innerText = (nat ? "NATURAL " : "") + winner.toUpperCase() + " wins";
-      document.getElementById('toast-winner').style.color = winner === 'player' ? '#3b82f6' : winner === 'banker' ? '#ef4444' : '#22c55e';
-      document.getElementById('toast-score').innerText = `RESULT: ${p} - ${b}`;
+      document.getElementById('toast-winner').innerText = w.toUpperCase() + " wins";
+      document.getElementById('toast-winner').style.color = w==='player'?'#3b82f6':w==='banker'?'#ef4444':'#22c55e';
+      document.getElementById('toast-score').innerText = `Score: ${p} - ${b}`;
       t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 3000);
     }
 
     function update() {
-      if (!cur) return;
+      if(!cur) return;
       const p = players[cur];
       document.getElementById('display-balance').innerText = p.b.toLocaleString();
       document.getElementById('bet-player').innerText = "₱" + p.bets.player.toLocaleString();
       document.getElementById('bet-tie').innerText = "₱" + p.bets.tie.toLocaleString();
       document.getElementById('bet-banker').innerText = "₱" + p.bets.banker.toLocaleString();
       document.getElementById('history-list').innerHTML = p.h.slice(0,10).map(e => `
-        <div class="bg-white/5 p-2 rounded-lg border border-white/5 flex justify-between text-[10px] mb-1">
-          <span class="font-bold uppercase ${e.winner === 'player'?'text-blue-400':e.winner === 'banker'?'text-red-400':'text-green-400'}">${e.winner}</span>
-          <span class="font-mono ${e.net >= 0 ? 'text-green-500':'text-red-500'}">${e.net >= 0 ? '+':''}${e.net.toLocaleString()}</span>
+        <div class="bg-white/5 p-2 rounded-lg flex justify-between text-[10px]">
+          <span class="uppercase font-bold ${e.winner==='player'?'text-blue-400':e.winner==='banker'?'text-red-400':'text-green-400'}">${e.winner}</span>
+          <span class="${e.net>=0?'text-green-500':'text-red-500'}">${e.net>=0?'+':''}${e.net.toLocaleString()}</span>
         </div>`).join('');
     }
 
-    function selectChip(amount, el) {
-      activeChipValue = amount;
-      document.querySelectorAll('.chip').forEach(c => c.classList.remove('chip-active'));
-      el.classList.add('chip-active');
-    }
-
     function undoBets() {
-        if (!cur || !isBettingOpen) return;
-        playSfx('chip');
+        if(!cur || !isBettingOpen) return;
         players[cur].b += (players[cur].bets.player + players[cur].bets.tie + players[cur].bets.banker);
         players[cur].bets = { player: 0, tie: 0, banker: 0 };
         document.querySelectorAll('.chip-area').forEach(c => c.innerHTML = '');
@@ -308,16 +326,17 @@
     }
 
     function doubleBets() {
-        if (!cur || !isBettingOpen) return;
+        if(!cur || !isBettingOpen) return;
         let p = players[cur]; let cost = (p.bets.player + p.bets.tie + p.bets.banker);
-        if (cost === 0 || p.b < cost) return;
-        playSfx('chip');
-        ['player', 'tie', 'banker'].forEach(zone => { if (p.bets[zone] > 0) createTableChip(p.bets[zone], zone); });
+        if(cost === 0 || p.b < cost) return;
+        ['player','tie','banker'].forEach(z => { if(p.bets[z]>0) createTableChip(p.bets[z], z); });
         p.b -= cost; p.bets.player *= 2; p.bets.tie *= 2; p.bets.banker *= 2;
         update();
     }
 
-    function refillBalance() { if (!cur) return; players[cur].b += 100000; update(); save(); }
+    function refillBalance() { if(cur) { players[cur].b += 100000; update(); save(); } }
+
+    startBettingRound();
   </script>
 </body>
 </html>
