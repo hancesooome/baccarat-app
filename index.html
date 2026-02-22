@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { 
-        background: radial-gradient(circle at center, #1a1c2c 0%, #08080a 100%); 
+        background: #08080a; 
         min-height: 100vh; color: white; overflow-x: hidden; font-family: sans-serif; 
         display: flex; flex-direction: column; align-items: center;
         padding-bottom: 40px;
@@ -19,14 +19,41 @@
 
     .dealer-section { position: relative; width: 100%; height: 320px; overflow: hidden; border-radius: 40px 40px 0 0; margin-top: 20px; }
     #dealer-video { width: 100%; height: 140%; object-fit: cover; position: absolute; top: -20%; opacity: 0.8; }
-    .video-mask { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 30%, #08080a 95%); z-index: 5; }
+    
+    .video-mask { 
+        position: absolute; 
+        inset: 0; 
+        background: linear-gradient(to bottom, transparent 30%, #08080a 98%); 
+        z-index: 5; 
+    }
 
-    .card-display-area { position: relative; z-index: 10; margin-top: -80px; padding-bottom: 40px; display: flex; justify-content: center; align-items: flex-end; }
+    .card-display-area { 
+        position: relative; 
+        z-index: 20; 
+        margin-top: -110px; 
+        padding-bottom: 20px; 
+        display: flex; 
+        justify-content: center; 
+        align-items: flex-end; 
+    }
     .card { width: 55px; height: 80px; background: white; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: black; font-weight: bold; font-size: 18px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); animation: deal 0.4s ease-out forwards; }
     .card.red { color: #ef4444; }
     .card-third { transform: rotate(90deg) !important; border: 2px solid #fbbf24; }
 
-    #table-zones { width: 100%; height: 240px; border-radius: 120px; overflow: hidden; border: 2px solid rgba(255,255,255,0.05); background: radial-gradient(ellipse at center, #1a1c2c 0%, #0a0a0f 100%); display: flex; box-shadow: inset 0 0 50px rgba(0,0,0,0.8); }
+    #table-zones { 
+        width: 100%; 
+        height: 240px; 
+        border-radius: 120px 120px 40px 40px; 
+        overflow: hidden; 
+        border: 2px solid rgba(255,255,255,0.05); 
+        background: #08080a; 
+        display: flex; 
+        box-shadow: inset 0 20px 40px rgba(0,0,0,0.8); 
+        margin-top: -15px;
+        position: relative;
+        z-index: 10;
+    }
+    
     .chip-area { position: absolute; inset: 0; z-index: 10; }
     .table-chip { position: absolute; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; border: 2px dashed rgba(255,255,255,0.5); left: 50%; transform: translateX(-50%); cursor: grab; z-index: 50; box-shadow: 0 4px 10px rgba(0,0,0,0.5); pointer-events: auto !important; }
     .chip-50 { background: #3f3f46; } .chip-250 { background: #be123c; } .chip-1250 { background: #15803d; } 
@@ -34,6 +61,24 @@
 
     .bet-zone { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.3s; cursor: pointer; border-right: 1px solid rgba(255,255,255,0.03); }
     .betting-closed { opacity: 0.5; pointer-events: none !important; filter: grayscale(0.5); }
+
+    /* Volume Slider Styling */
+    .volume-slider {
+      -webkit-appearance: none;
+      width: 80px;
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 5px;
+      outline: none;
+    }
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      background: #fbbf24;
+      border-radius: 50%;
+      cursor: pointer;
+    }
 
     @keyframes winPulse {
         0% { transform: scale(1); color: white; }
@@ -65,14 +110,24 @@
 
   <div class="game-container mt-12 px-4">
     <div class="w-full flex justify-between items-center glass p-6 rounded-[35px] mb-4">
-        <div>
-            <span class="text-zinc-500 text-[10px] font-black uppercase">Active Player</span>
-            <select id="player-select" onchange="switchPlayer()" class="block mt-1 bg-black/40 text-yellow-500 font-bold p-2 rounded-xl border border-yellow-500/30 outline-none">
-                <option value="" disabled selected>CHOOSE...</option>
-                <option value="Gabbi">Gabbi</option><option value="Yowe">Yowe</option>
-                <option value="Lash">Lash</option><option value="Jabo">Jabo</option>
-                <option value="Kuku">Kuku</option><option value="DJ">DJ</option><option value="GK">GK</option>
-            </select>
+        <div class="flex items-center gap-4">
+            <div>
+                <span class="text-zinc-500 text-[10px] font-black uppercase">Active Player</span>
+                <select id="player-select" onchange="switchPlayer()" class="block mt-1 bg-black/40 text-yellow-500 font-bold p-2 rounded-xl border border-yellow-500/30 outline-none">
+                    <option value="" disabled selected>CHOOSE...</option>
+                    <option value="Gabbi">Gabbi</option><option value="Yowe">Yowe</option>
+                    <option value="Lash">Lash</option><option value="Jabo">Jabo</option>
+                    <option value="Kuku">Kuku</option><option value="DJ">DJ</option><option value="GK">GK</option>
+                </select>
+            </div>
+            <div class="ml-2 flex flex-col items-start gap-1">
+                <span class="text-zinc-500 text-[8px] font-black uppercase">Volume</span>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px]">🔈</span>
+                    <input type="range" id="volume-control" class="volume-slider" min="0" max="1" step="0.1" value="0.5" oninput="adjustVolume(this.value)">
+                    <span class="text-[10px]">🔊</span>
+                </div>
+            </div>
         </div>
         <div class="text-right">
             <span class="text-zinc-500 text-[10px] font-bold uppercase">Balance</span>
@@ -103,7 +158,7 @@
         </div>
     </div>
 
-    <div id="table-zones" class="relative mt-4">
+    <div id="table-zones" class="relative">
       <div onclick="handleTableClick('player')" ondragover="allowDrop(event)" ondrop="handleDrop('player', event)" class="bet-zone">
         <span class="text-blue-500 font-black text-xl italic opacity-20">PLAYER</span>
         <div id="bet-player" class="text-2xl font-mono font-bold mt-2">₱0</div>
@@ -145,6 +200,13 @@
         placeBets: new Audio('https://raw.githubusercontent.com/hancesooome/baccarat-app/main/placebet.mp3'),
         noMoreBets: new Audio('https://raw.githubusercontent.com/hancesooome/baccarat-app/main/betsclosed.mp3')
     };
+
+    // Initialize volume from slider value
+    function adjustVolume(val) {
+        Object.values(sounds).forEach(audio => {
+            audio.volume = val;
+        });
+    }
 
     let players = JSON.parse(localStorage.getItem('baccarat_db')) || {
       "Gabbi": { b: 100000, bets: { player: 0, tie: 0, banker: 0 } },
@@ -205,17 +267,17 @@
     }
 
     function createVisualChip(amount, zone) {
-      const container = document.getElementById(`chips-${zone}`);
-      const chip = document.createElement('div');
-      const stack = chipStackCount[zone] * 4; chipStackCount[zone]++;
-      const visualVal = amount >= 1000 ? (amount/1000)+'k' : amount;
-      chip.className = `table-chip chip-${amount >= 125000 ? '125k' : amount >= 25000 ? '25k' : amount >= 5000 ? '5000' : '50'}`;
-      chip.innerText = visualVal;
-      chip.style.bottom = (30 + stack) + "px";
-      chip.draggable = true;
-      chip.onmousedown = (e) => { if(isBettingOpen) dragData = { type: 'transfer', from: zone, value: amount }; };
-      chip.ondragstart = (e) => { e.dataTransfer.setData("text", "chip"); };
-      container.appendChild(chip);
+        const container = document.getElementById(`chips-${zone}`);
+        const chip = document.createElement('div');
+        const stack = chipStackCount[zone] * 4; chipStackCount[zone]++;
+        const visualVal = amount >= 1000 ? (amount/1000)+'k' : amount;
+        chip.className = `table-chip chip-${amount >= 125000 ? '125k' : amount >= 25000 ? '25k' : amount >= 5000 ? '5000' : '50'}`;
+        chip.innerText = visualVal;
+        chip.style.bottom = (30 + stack) + "px";
+        chip.draggable = true;
+        chip.onmousedown = (e) => { if(isBettingOpen) dragData = { type: 'transfer', from: zone, value: amount }; };
+        chip.ondragstart = (e) => { e.dataTransfer.setData("text", "chip"); };
+        container.appendChild(chip);
     }
 
     function redrawTableChips() {
@@ -357,6 +419,10 @@
     }
 
     function refillBalance() { if(cur) { players[cur].b += 100000; update(); save(); } }
+    
+    // Set initial volume on load
+    adjustVolume(document.getElementById('volume-control').value);
+    
     startBettingRound();
   </script>
 </body>
